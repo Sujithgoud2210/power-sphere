@@ -44,3 +44,9 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+# JWT Configuration
+jwt:
+  secret: dGVzdC1zZWNyZXQta2V5LXRoYXQtaXMtYXQtbGVhc3QtMjU2LWJpdHMtbG9uZy1mb3ItaG1hYy1zaGEtYWxnb3JpdGht
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
