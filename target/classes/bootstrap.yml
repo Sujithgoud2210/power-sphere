@@ -1,0 +1,14 @@
+# =============================================================================
+# PowerSphere – Bootstrap Configuration
+# =============================================================================
+#
+# Bootstrap configuration is loaded before the main application context.
+# Used for loading external configuration sources (e.g., Spring Cloud Config Server)
+# when migrating to microservices architecture.
+#
+# Currently configured as a placeholder for future use.
+
+spring:
+  cloud:
+    config:
+      enabled: false
