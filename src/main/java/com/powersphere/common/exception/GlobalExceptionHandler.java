@@ -7,6 +7,12 @@ import com.powersphere.authentication.exception.TokenExpiredException;
 import com.powersphere.authentication.exception.UserAlreadyExistsException;
 import com.powersphere.authentication.exception.UserNotFoundException;
 import com.powersphere.common.dto.ErrorResponse;
+import com.powersphere.organization.exception.DepartmentNotFoundException;
+import com.powersphere.organization.exception.DuplicateDepartmentException;
+import com.powersphere.organization.exception.DuplicateOrganizationException;
+import com.powersphere.organization.exception.DuplicateTeamException;
+import com.powersphere.organization.exception.OrganizationNotFoundException;
+import com.powersphere.organization.exception.TeamNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -125,6 +131,48 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex, WebRequest request) {
         log.warn("Illegal argument: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex, request);
+    }
+
+    @ExceptionHandler(OrganizationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOrganizationNotFound(
+            OrganizationNotFoundException ex, WebRequest request) {
+        log.warn("Organization not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex, request);
+    }
+
+    @ExceptionHandler(DepartmentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDepartmentNotFound(
+            DepartmentNotFoundException ex, WebRequest request) {
+        log.warn("Department not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex, request);
+    }
+
+    @ExceptionHandler(TeamNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTeamNotFound(
+            TeamNotFoundException ex, WebRequest request) {
+        log.warn("Team not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex, request);
+    }
+
+    @ExceptionHandler(DuplicateOrganizationException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateOrganization(
+            DuplicateOrganizationException ex, WebRequest request) {
+        log.warn("Duplicate organization: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.CONFLICT, ex, request);
+    }
+
+    @ExceptionHandler(DuplicateDepartmentException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateDepartment(
+            DuplicateDepartmentException ex, WebRequest request) {
+        log.warn("Duplicate department: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.CONFLICT, ex, request);
+    }
+
+    @ExceptionHandler(DuplicateTeamException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateTeam(
+            DuplicateTeamException ex, WebRequest request) {
+        log.warn("Duplicate team: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.CONFLICT, ex, request);
     }
 
     @ExceptionHandler(RuntimeException.class)
