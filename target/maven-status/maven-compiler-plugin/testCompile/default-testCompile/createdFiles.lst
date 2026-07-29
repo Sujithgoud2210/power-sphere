@@ -1,0 +1,4 @@
+com\powersphere\energy\mapper\EnergyReadingMapperTest.class
+com\powersphere\energy\repository\EnergyReadingRepositoryTest.class
+com\powersphere\energy\validation\EnergyReadingValidatorTest.class
+com\powersphere\energy\service\impl\ConsumptionServiceImplTest.class
