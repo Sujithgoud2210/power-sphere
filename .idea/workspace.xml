@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e01d6715-cacc-406e-85eb-ed38b488a880" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="4" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Sujithgoud2210"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Sujithgoud2210/power-sphere.git",
+    "accountId": "d5b842c8-e806-4d29-9ac9-d134f80eef4d"
+  }
+}]]></component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.4339318893960085" />
+      <entry key="MS500" value="3.59364677414811" />
+      <entry key="S2" value="6.7334867058590815" />
+      <entry key="S5" value="7.971848543530859" />
+      <entry key="S10" value="8.462889148222178" />
+      <entry key="S30" value="8.815554063412662" />
+      <entry key="S60" value="8.907081883348228" />
+      <entry key="M2" value="8.953365692713446" />
+      <entry key="M5" value="8.981428254829563" />
+      <entry key="M10" value="9.011397433990883" />
+      <entry key="M15" value="9.151161997913603" />
+      <entry key="M30" value="11.896006270078809" />
+      <entry key="H1" value="26.66557627564099" />
+      <entry key="H2" value="54.77827920963241" />
+      <entry key="H4" value="83.27356172217632" />
+      <entry key="D1" value="120.51927866101266" />
+      <entry key="W1" value="128.59709288665783" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="3.5E-322" />
+      <entry key="S30" value="9.597471059351498E-108" />
+      <entry key="S60" value="4.265405276713479E-54" />
+      <entry key="M2" value="2.90030685712721E-27" />
+      <entry key="M5" value="3.671587149436962E-11" />
+      <entry key="M10" value="8.566786022009979E-6" />
+      <entry key="M15" value="5.274658858620621E-4" />
+      <entry key="M30" value="0.03247868224452414" />
+      <entry key="H1" value="0.25486532417620217" />
+      <entry key="H2" value="0.7139528175342709" />
+      <entry key="H4" value="1.1949494627497217" />
+      <entry key="D1" value="1.8354809842031359" />
+      <entry key="W1" value="1.9756238731962013" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="1.360988292002572" />
+      <entry key="MS500" value="3.5127372368828764" />
+      <entry key="S2" value="6.6840001197115955" />
+      <entry key="S5" value="7.947733091863478" />
+      <entry key="S10" value="8.449996232839792" />
+      <entry key="S30" value="8.81105880181707" />
+      <entry key="S60" value="8.904808760864757" />
+      <entry key="M2" value="8.95222269793887" />
+      <entry key="M5" value="8.980969497438013" />
+      <entry key="M10" value="9.011175707817879" />
+      <entry key="M15" value="9.151531907112355" />
+      <entry key="M30" value="11.928337162225231" />
+      <entry key="H1" value="26.920144419334772" />
+      <entry key="H2" value="55.491856783085645" />
+      <entry key="H4" value="84.46820550929633" />
+      <entry key="D1" value="122.35468257483276" />
+      <entry key="W1" value="130.57270493433055" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="3HAkAbKYuUf7a1CqtOC8Hxrausy" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "feature/meter-management",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/power-sphere",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="PowerSphereApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="power-sphere" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.powersphere.PowerSphereApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-63390994e64e-intellij.indexing.shared.core-IU-262.8665.337" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.8665.337" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e01d6715-cacc-406e-85eb-ed38b488a880" name="Changes" comment="" />
+      <created>1785318125587</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1785318125587</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
