@@ -1,17 +1,17 @@
 package com.powersphere.notification.service;
 
-import com.powersphere.notification.dto.request.SendNotificationRequest;
+import com.powersphere.notification.dto.request.CreateNotificationRequest;
+import com.powersphere.notification.dto.request.UpdateNotificationRequest;
 import com.powersphere.notification.dto.response.NotificationResponse;
+import com.powersphere.notification.dto.response.PagedResponse;
 import com.powersphere.notification.entity.Notification;
-import com.powersphere.notification.enums.NotificationChannel;
-import com.powersphere.notification.enums.NotificationPriority;
-import com.powersphere.notification.enums.NotificationStatus;
-import com.powersphere.notification.enums.NotificationType;
+import com.powersphere.notification.exception.NotificationNotFoundException;
 import com.powersphere.notification.mapper.NotificationMapper;
+import com.powersphere.notification.model.NotificationChannel;
+import com.powersphere.notification.model.NotificationPriority;
+import com.powersphere.notification.model.NotificationStatus;
 import com.powersphere.notification.repository.NotificationRepository;
-import com.powersphere.notification.repository.NotificationTemplateRepository;
 import com.powersphere.notification.service.impl.NotificationServiceImpl;
-import com.powersphere.notification.util.NotificationTemplateEngine;
 import com.powersphere.notification.validation.NotificationValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,15 +19,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for {@link NotificationServiceImpl}.
- */
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceTest {
 
@@ -35,136 +39,224 @@ class NotificationServiceTest {
     private NotificationRepository notificationRepository;
 
     @Mock
-    private NotificationTemplateRepository templateRepository;
+    private NotificationMapper notificationMapper;
+
+    @Mock
+    private NotificationValidator notificationValidator;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
-    private NotificationMapper mapper;
-    private NotificationValidator validator;
-    private NotificationTemplateEngine templateEngine;
-    private NotificationServiceImpl notificationService;
+    private NotificationService notificationService;
 
     @BeforeEach
     void setUp() {
-        mapper = new NotificationMapper();
-        validator = new NotificationValidator();
-        templateEngine = new NotificationTemplateEngine();
         notificationService = new NotificationServiceImpl(
-                notificationRepository,
-                templateRepository,
-                mapper,
-                validator,
-                templateEngine,
-                eventPublisher);
+                notificationRepository, notificationMapper,
+                notificationValidator, eventPublisher);
     }
 
     @Test
-    void shouldSendNotificationSuccessfully() {
-        // Given
-        SendNotificationRequest request = createValidRequest();
-        Notification savedNotification = createNotificationEntity();
-
-        when(notificationRepository.save(any(Notification.class))).thenReturn(savedNotification);
-
-        // When
-        NotificationResponse response = notificationService.sendNotification(request);
-
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getType()).isEqualTo(NotificationType.SYSTEM_ALERT);
-        assertThat(response.getChannel()).isEqualTo(NotificationChannel.EMAIL);
-        assertThat(response.getRecipientId()).isEqualTo(1L);
-        assertThat(response.getSubject()).isEqualTo("Test Subject");
-        assertThat(response.getContent()).isEqualTo("Test content");
-
-        verify(notificationRepository, times(1)).save(any(Notification.class));
-        verify(eventPublisher, times(1)).publishEvent(any());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenRequestIsInvalid() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setChannel(NotificationChannel.EMAIL);
-        request.setRecipientEmail("invalid-email");
-
-        // When & Then
-        assertThatThrownBy(() -> notificationService.sendNotification(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Validation failed");
-    }
-
-    @Test
-    void shouldMarkNotificationAsRead() {
-        // Given
-        Long notificationId = 1L;
-        Long recipientId = 1L;
-        Notification notification = createNotificationEntity();
-
-        when(notificationRepository.findByIdAndRecipientId(notificationId, recipientId))
-                .thenReturn(java.util.Optional.of(notification));
-        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
-
-        // When
-        NotificationResponse response = notificationService.markAsRead(notificationId, recipientId);
-
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getReadAt()).isNotNull();
-
-        verify(notificationRepository, times(1)).findByIdAndRecipientId(notificationId, recipientId);
-        verify(notificationRepository, times(1)).save(any(Notification.class));
-    }
-
-    @Test
-    void shouldArchiveNotification() {
-        // Given
-        Long notificationId = 1L;
-        Notification notification = createNotificationEntity();
-
-        when(notificationRepository.findById(notificationId))
-                .thenReturn(java.util.Optional.of(notification));
-        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
-
-        // When
-        NotificationResponse response = notificationService.archiveNotification(notificationId);
-
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(NotificationStatus.ARCHIVED);
-
-        verify(notificationRepository, times(1)).findById(notificationId);
-        verify(notificationRepository, times(1)).save(any(Notification.class));
-    }
-
-    private SendNotificationRequest createValidRequest() {
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setType(NotificationType.SYSTEM_ALERT);
-        request.setChannel(NotificationChannel.EMAIL);
-        request.setSubject("Test Subject");
-        request.setContent("Test content");
-        request.setRecipientId(1L);
-        request.setRecipientEmail("test@example.com");
-        request.setSenderId(100L);
-        request.setSenderEmail("sender@example.com");
-        request.setPriority(NotificationPriority.HIGH);
-        return request;
-    }
-
-    private Notification createNotificationEntity() {
-        return Notification.builder()
-                .id(1L)
-                .type(NotificationType.SYSTEM_ALERT)
-                .status(NotificationStatus.PENDING)
+    void createNotification_ShouldReturnResponse() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test Notification")
+                .message("Test message")
+                .notificationType(NotificationChannel.EMAIL)
                 .priority(NotificationPriority.HIGH)
                 .channel(NotificationChannel.EMAIL)
-                .subject("Test Subject")
-                .content("Test content")
-                .senderId(100L)
-                .senderEmail("sender@example.com")
-                .recipientId(1L)
-                .recipientEmail("test@example.com")
                 .build();
+
+        Notification notification = Notification.builder()
+                .id(1L)
+                .title("Test Notification")
+                .message("Test message")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.HIGH)
+                .status(NotificationStatus.PENDING)
+                .channel(NotificationChannel.EMAIL)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        NotificationResponse response = NotificationResponse.builder()
+                .id(1L)
+                .title("Test Notification")
+                .message("Test message")
+                .notificationType("EMAIL")
+                .priority("HIGH")
+                .status("PENDING")
+                .channel("EMAIL")
+                .build();
+
+        when(notificationMapper.toEntity(request)).thenReturn(notification);
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
+        when(notificationMapper.toResponse(notification)).thenReturn(response);
+
+        NotificationResponse result = notificationService.createNotification(request);
+
+        assertNotNull(result);
+        assertEquals("Test Notification", result.getTitle());
+        assertEquals("HIGH", result.getPriority());
+        verify(notificationValidator).validateCreate(request);
+        verify(eventPublisher).publishEvent(any());
+    }
+
+    @Test
+    void getNotificationById_ShouldReturnResponse() {
+        Notification notification = Notification.builder()
+                .id(1L)
+                .title("Test")
+                .build();
+
+        NotificationResponse response = NotificationResponse.builder()
+                .id(1L)
+                .title("Test")
+                .build();
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+        when(notificationMapper.toResponse(notification)).thenReturn(response);
+
+        NotificationResponse result = notificationService.getNotificationById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("Test", result.getTitle());
+    }
+
+    @Test
+    void getNotificationById_ShouldThrowException_WhenNotFound() {
+        when(notificationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(NotificationNotFoundException.class,
+                () -> notificationService.getNotificationById(999L));
+    }
+
+    @Test
+    void updateNotification_ShouldReturnUpdatedResponse() {
+        UpdateNotificationRequest request = UpdateNotificationRequest.builder()
+                .title("Updated Title")
+                .build();
+
+        Notification notification = Notification.builder()
+                .id(1L)
+                .title("Original Title")
+                .build();
+
+        NotificationResponse response = NotificationResponse.builder()
+                .id(1L)
+                .title("Updated Title")
+                .build();
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
+        when(notificationMapper.toResponse(notification)).thenReturn(response);
+
+        NotificationResponse result = notificationService.updateNotification(1L, request);
+
+        assertNotNull(result);
+        assertEquals("Updated Title", result.getTitle());
+        verify(notificationValidator).validateUpdate(request);
+    }
+
+    @Test
+    void deleteNotification_ShouldDeleteSuccessfully() {
+        Notification notification = Notification.builder().id(1L).build();
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+
+        notificationService.deleteNotification(1L);
+
+        verify(notificationRepository).delete(notification);
+    }
+
+    @Test
+    void deleteNotification_ShouldThrowException_WhenNotFound() {
+        when(notificationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(NotificationNotFoundException.class,
+                () -> notificationService.deleteNotification(999L));
+    }
+
+    @Test
+    void markAsRead_ShouldUpdateStatus() {
+        Notification notification = Notification.builder()
+                .id(1L)
+                .status(NotificationStatus.PENDING)
+                .build();
+
+        NotificationResponse response = NotificationResponse.builder()
+                .id(1L)
+                .status("READ")
+                .build();
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
+        when(notificationMapper.toResponse(notification)).thenReturn(response);
+
+        NotificationResponse result = notificationService.markAsRead(1L);
+
+        assertNotNull(result);
+        assertEquals("READ", result.getStatus());
+        verify(eventPublisher).publishEvent(any());
+    }
+
+    @Test
+    void markAsRead_ShouldThrowException_WhenAlreadyRead() {
+        Notification notification = Notification.builder()
+                .id(1L)
+                .status(NotificationStatus.READ)
+                .build();
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+
+        assertThrows(IllegalStateException.class,
+                () -> notificationService.markAsRead(1L));
+    }
+
+    @Test
+    void cancelNotification_ShouldSetFailedStatus() {
+        Notification notification = Notification.builder()
+                .id(1L)
+                .status(NotificationStatus.PENDING)
+                .build();
+
+        NotificationResponse response = NotificationResponse.builder()
+                .id(1L)
+                .status("FAILED")
+                .remarks("Notification cancelled by user")
+                .build();
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
+        when(notificationMapper.toResponse(notification)).thenReturn(response);
+
+        NotificationResponse result = notificationService.cancelNotification(1L);
+
+        assertNotNull(result);
+        assertEquals("FAILED", result.getStatus());
+    }
+
+    @Test
+    void cancelNotification_ShouldThrowException_WhenAlreadySent() {
+        Notification notification = Notification.builder()
+                .id(1L)
+                .status(NotificationStatus.SENT)
+                .build();
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+
+        assertThrows(IllegalStateException.class,
+                () -> notificationService.cancelNotification(1L));
+    }
+
+    @Test
+    void getAllNotifications_ShouldReturnPagedResponse() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Notification> page = new PageImpl<>(Collections.emptyList());
+
+        when(notificationRepository.findAll(pageable)).thenReturn(page);
+
+        PagedResponse<NotificationResponse> result = notificationService.getAllNotifications(pageable);
+
+        assertNotNull(result);
+        assertTrue(result.getContent().isEmpty());
     }
 }

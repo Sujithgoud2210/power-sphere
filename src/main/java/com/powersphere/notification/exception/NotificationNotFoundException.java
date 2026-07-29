@@ -1,15 +1,12 @@
 package com.powersphere.notification.exception;
 
-/**
- * Exception thrown when a requested notification resource cannot be found.
- */
-public class NotificationNotFoundException extends NotificationException {
+public class NotificationNotFoundException extends RuntimeException {
 
     public NotificationNotFoundException(Long id) {
-        super("Notification not found with id: " + id, "NOTIFICATION_NOT_FOUND");
+        super("Notification not found with id: " + id);
     }
 
     public NotificationNotFoundException(String message) {
-        super(message, "NOTIFICATION_NOT_FOUND");
+        super(message);
     }
 }

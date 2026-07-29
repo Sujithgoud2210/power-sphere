@@ -1,127 +1,83 @@
 package com.powersphere.notification.service.impl;
 
-import com.powersphere.notification.dto.request.NotificationTemplateRequest;
+import com.powersphere.notification.dto.request.CreateNotificationTemplateRequest;
+import com.powersphere.notification.dto.request.UpdateNotificationTemplateRequest;
 import com.powersphere.notification.dto.response.NotificationTemplateResponse;
 import com.powersphere.notification.entity.NotificationTemplate;
-import com.powersphere.notification.enums.NotificationChannel;
-import com.powersphere.notification.enums.NotificationType;
-import com.powersphere.notification.exception.NotificationTemplateNotFoundException;
-import com.powersphere.notification.mapper.NotificationMapper;
+import com.powersphere.notification.exception.NotificationNotFoundException;
+import com.powersphere.notification.mapper.NotificationTemplateMapper;
 import com.powersphere.notification.repository.NotificationTemplateRepository;
 import com.powersphere.notification.service.NotificationTemplateService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Implementation of the {@link NotificationTemplateService} interface.
- * Manages the lifecycle of notification templates including creation,
- * updates, and querying by various criteria.
- */
 @Service
+@RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class NotificationTemplateServiceImpl implements NotificationTemplateService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationTemplateServiceImpl.class);
-
     private final NotificationTemplateRepository templateRepository;
-    private final NotificationMapper mapper;
-
-    public NotificationTemplateServiceImpl(
-            NotificationTemplateRepository templateRepository,
-            NotificationMapper mapper) {
-        this.templateRepository = templateRepository;
-        this.mapper = mapper;
-    }
+    private final NotificationTemplateMapper templateMapper;
 
     @Override
-    public NotificationTemplateResponse createTemplate(NotificationTemplateRequest request) {
+    public NotificationTemplateResponse createTemplate(CreateNotificationTemplateRequest request) {
         if (templateRepository.existsByCode(request.getCode())) {
-            throw new IllegalArgumentException(
-                    "Template with code '" + request.getCode() + "' already exists");
+            throw new IllegalArgumentException("Template with code '" + request.getCode() + "' already exists");
         }
 
-        NotificationTemplate template = NotificationTemplate.builder()
-                .code(request.getCode())
-                .name(request.getName())
-                .description(request.getDescription())
-                .type(request.getType())
-                .channel(request.getChannel())
-                .subjectTemplate(request.getSubjectTemplate())
-                .bodyTemplate(request.getBodyTemplate())
-                .active(request.isActive())
-                .organizationId(request.getOrganizationId())
-                .build();
-
-        template = templateRepository.save(template);
-
-        log.info("Notification template created: id={}, code={}", template.getId(), template.getCode());
-
-        return mapper.toTemplateResponse(template);
+        NotificationTemplate template = templateMapper.toEntity(request);
+        NotificationTemplate saved = templateRepository.save(template);
+        log.info("Notification template created: id={}, code='{}'", saved.getId(), saved.getCode());
+        return templateMapper.toResponse(saved);
     }
 
     @Override
-    public NotificationTemplateResponse updateTemplate(Long id, NotificationTemplateRequest request) {
-        NotificationTemplate template = templateRepository.findById(id)
-                .orElseThrow(() -> new NotificationTemplateNotFoundException("id: " + id));
-
-        template.setName(request.getName());
-        template.setDescription(request.getDescription());
-        template.setType(request.getType());
-        template.setChannel(request.getChannel());
-        template.setSubjectTemplate(request.getSubjectTemplate());
-        template.setBodyTemplate(request.getBodyTemplate());
-        template.setActive(request.isActive());
-        template.setOrganizationId(request.getOrganizationId());
-
-        template = templateRepository.save(template);
-
-        log.info("Notification template updated: id={}, code={}", template.getId(), template.getCode());
-
-        return mapper.toTemplateResponse(template);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public NotificationTemplateResponse getTemplate(Long id) {
-        NotificationTemplate template = templateRepository.findById(id)
-                .orElseThrow(() -> new NotificationTemplateNotFoundException("id: " + id));
-        return mapper.toTemplateResponse(template);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public NotificationTemplateResponse getTemplateByCode(String code) {
-        NotificationTemplate template = templateRepository.findByCode(code)
-                .orElseThrow(() -> new NotificationTemplateNotFoundException(code));
-        return mapper.toTemplateResponse(template);
+    public NotificationTemplateResponse updateTemplate(Long id, UpdateNotificationTemplateRequest request) {
+        NotificationTemplate template = findTemplateOrThrow(id);
+        templateMapper.updateEntity(template, request);
+        NotificationTemplate updated = templateRepository.save(template);
+        log.info("Notification template updated: id={}", updated.getId());
+        return templateMapper.toResponse(updated);
     }
 
     @Override
     public void deleteTemplate(Long id) {
-        if (!templateRepository.existsById(id)) {
-            throw new NotificationTemplateNotFoundException("id: " + id);
-        }
-        templateRepository.deleteById(id);
+        NotificationTemplate template = findTemplateOrThrow(id);
+        templateRepository.delete(template);
         log.info("Notification template deleted: id={}", id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationTemplateResponse> getTemplatesByTypeAndChannel(
-            NotificationType type, NotificationChannel channel) {
-        List<NotificationTemplate> templates = templateRepository
-                .findByTypeAndChannelAndActiveTrue(type, channel);
-        return mapper.toTemplateResponseList(templates);
+    public NotificationTemplateResponse getTemplateById(Long id) {
+        return templateMapper.toResponse(findTemplateOrThrow(id));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationTemplateResponse> getAllActiveTemplates() {
-        List<NotificationTemplate> templates = templateRepository.findByActiveTrue();
-        return mapper.toTemplateResponseList(templates);
+    public NotificationTemplateResponse getTemplateByCode(String code) {
+        return templateRepository.findByCode(code)
+                .map(templateMapper::toResponse)
+                .orElseThrow(() -> new NotificationNotFoundException("Template not found with code: " + code));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<NotificationTemplateResponse> getAllTemplates() {
+        return templateRepository.findAll()
+                .stream()
+                .map(templateMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    private NotificationTemplate findTemplateOrThrow(Long id) {
+        return templateRepository.findById(id)
+                .orElseThrow(() -> new NotificationNotFoundException("Notification template not found with id: " + id));
     }
 }

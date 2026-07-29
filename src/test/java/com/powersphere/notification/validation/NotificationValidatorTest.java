@@ -1,18 +1,16 @@
 package com.powersphere.notification.validation;
 
-import com.powersphere.notification.dto.request.SendNotificationRequest;
-import com.powersphere.notification.enums.NotificationChannel;
-import com.powersphere.notification.enums.NotificationType;
+import com.powersphere.notification.dto.request.CreateNotificationRequest;
+import com.powersphere.notification.dto.request.UpdateNotificationRequest;
+import com.powersphere.notification.model.NotificationChannel;
+import com.powersphere.notification.model.NotificationPriority;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for {@link NotificationValidator}.
- */
 class NotificationValidatorTest {
 
     private NotificationValidator validator;
@@ -23,113 +21,168 @@ class NotificationValidatorTest {
     }
 
     @Test
-    void shouldPassValidationForValidEmailRequest() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setType(NotificationType.SYSTEM_ALERT);
-        request.setChannel(NotificationChannel.EMAIL);
-        request.setRecipientId(1L);
-        request.setRecipientEmail("user@example.com");
-        request.setContent("Test content");
+    void validateCreate_ShouldPass_WhenAllFieldsValid() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test Notification")
+                .message("Test message")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.EMAIL)
+                .recipientUser(1L)
+                .build();
 
-        // When
-        List<String> errors = validator.validate(request);
-
-        // Then
-        assertThat(errors).isEmpty();
+        assertDoesNotThrow(() -> validator.validateCreate(request));
     }
 
     @Test
-    void shouldFailWhenTypeIsMissing() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setChannel(NotificationChannel.IN_APP);
-        request.setRecipientId(1L);
-        request.setContent("Test");
+    void validateCreate_ShouldThrow_WhenTitleMissing() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("")
+                .message("Test message")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.EMAIL)
+                .recipientUser(1L)
+                .build();
 
-        // When
-        List<String> errors = validator.validate(request);
-
-        // Then
-        assertThat(errors).contains("Notification type is required");
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateCreate(request));
     }
 
     @Test
-    void shouldFailWhenChannelIsMissing() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setType(NotificationType.SYSTEM_ALERT);
-        request.setRecipientId(1L);
-        request.setContent("Test");
+    void validateCreate_ShouldThrow_WhenMessageMissing() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test")
+                .message("")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.EMAIL)
+                .recipientUser(1L)
+                .build();
 
-        // When
-        List<String> errors = validator.validate(request);
-
-        // Then
-        assertThat(errors).contains("Notification channel is required");
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateCreate(request));
     }
 
     @Test
-    void shouldFailWhenRecipientIdIsMissing() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setType(NotificationType.SYSTEM_ALERT);
-        request.setChannel(NotificationChannel.IN_APP);
-        request.setContent("Test");
+    void validateCreate_ShouldThrow_WhenTypeNull() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test")
+                .message("Message")
+                .notificationType(null)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.EMAIL)
+                .recipientUser(1L)
+                .build();
 
-        // When
-        List<String> errors = validator.validate(request);
-
-        // Then
-        assertThat(errors).contains("Recipient ID is required");
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateCreate(request));
     }
 
     @Test
-    void shouldFailForEmailChannelWithoutEmail() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setType(NotificationType.SYSTEM_ALERT);
-        request.setChannel(NotificationChannel.EMAIL);
-        request.setRecipientId(1L);
-        request.setContent("Test");
+    void validateCreate_ShouldThrow_WhenNoRecipient() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test")
+                .message("Message")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.EMAIL)
+                .recipientUser(null)
+                .recipientEmail(null)
+                .recipientPhone(null)
+                .build();
 
-        // When
-        List<String> errors = validator.validate(request);
-
-        // Then
-        assertThat(errors).contains("Recipient email is required for EMAIL notifications");
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateCreate(request));
     }
 
     @Test
-    void shouldFailWithInvalidEmailFormat() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setType(NotificationType.SYSTEM_ALERT);
-        request.setChannel(NotificationChannel.EMAIL);
-        request.setRecipientId(1L);
-        request.setRecipientEmail("invalid-email");
-        request.setContent("Test");
+    void validateCreate_ShouldPass_WithEmailRecipient() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test")
+                .message("Message")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.EMAIL)
+                .recipientEmail("user@example.com")
+                .build();
 
-        // When
-        List<String> errors = validator.validate(request);
-
-        // Then
-        assertThat(errors).contains("Invalid recipient email format");
+        assertDoesNotThrow(() -> validator.validateCreate(request));
     }
 
     @Test
-    void shouldFailWhenBothContentAndTemplateAreMissing() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setType(NotificationType.SYSTEM_ALERT);
-        request.setChannel(NotificationChannel.EMAIL);
-        request.setRecipientId(1L);
-        request.setRecipientEmail("user@example.com");
+    void validateCreate_ShouldPass_WithPhoneRecipient() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test")
+                .message("Message")
+                .notificationType(NotificationChannel.SMS)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.SMS)
+                .recipientPhone("+1234567890")
+                .build();
 
-        // When
-        List<String> errors = validator.validate(request);
+        assertDoesNotThrow(() -> validator.validateCreate(request));
+    }
 
-        // Then
-        assertThat(errors).contains("Either content or templateCode must be provided");
+    @Test
+    void validateUpdate_ShouldPass_WhenAllFieldsValid() {
+        UpdateNotificationRequest request = UpdateNotificationRequest.builder()
+                .title("Updated Title")
+                .message("Updated message")
+                .build();
+
+        assertDoesNotThrow(() -> validator.validateUpdate(request));
+    }
+
+    @Test
+    void validateUpdate_ShouldThrow_WhenTitleEmpty() {
+        UpdateNotificationRequest request = UpdateNotificationRequest.builder()
+                .title("   ")
+                .build();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateUpdate(request));
+    }
+
+    @Test
+    void validateUpdate_ShouldThrow_WhenMessageEmpty() {
+        UpdateNotificationRequest request = UpdateNotificationRequest.builder()
+                .message("   ")
+                .build();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateUpdate(request));
+    }
+
+    @Test
+    void validateScheduledNotification_ShouldThrow_WhenTimeInPast() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test")
+                .message("Message")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.EMAIL)
+                .recipientUser(1L)
+                .scheduledTime(LocalDateTime.now().minusHours(1))
+                .build();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateScheduledNotification(request));
+    }
+
+    @Test
+    void validateScheduledNotification_ShouldThrow_WhenTimeNull() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test")
+                .message("Message")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.HIGH)
+                .channel(NotificationChannel.EMAIL)
+                .recipientUser(1L)
+                .scheduledTime(null)
+                .build();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> validator.validateScheduledNotification(request));
     }
 }

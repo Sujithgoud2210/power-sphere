@@ -1,102 +1,137 @@
 package com.powersphere.notification.mapper;
 
-import com.powersphere.notification.dto.request.SendNotificationRequest;
+import com.powersphere.notification.dto.request.CreateNotificationRequest;
+import com.powersphere.notification.dto.request.UpdateNotificationRequest;
 import com.powersphere.notification.dto.response.NotificationResponse;
 import com.powersphere.notification.entity.Notification;
-import com.powersphere.notification.enums.NotificationChannel;
-import com.powersphere.notification.enums.NotificationPriority;
-import com.powersphere.notification.enums.NotificationStatus;
-import com.powersphere.notification.enums.NotificationType;
-import org.junit.jupiter.api.BeforeEach;
+import com.powersphere.notification.model.NotificationChannel;
+import com.powersphere.notification.model.NotificationPriority;
+import com.powersphere.notification.model.NotificationStatus;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
+import java.time.LocalDateTime;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for {@link NotificationMapper}.
- */
+@ExtendWith(MockitoExtension.class)
 class NotificationMapperTest {
 
-    private NotificationMapper mapper;
-
-    @BeforeEach
-    void setUp() {
-        mapper = new NotificationMapper();
-    }
+    private final NotificationMapper mapper = Mappers.getMapper(NotificationMapper.class);
 
     @Test
-    void shouldMapRequestToEntity() {
-        // Given
-        SendNotificationRequest request = new SendNotificationRequest();
-        request.setType(NotificationType.SYSTEM_ALERT);
-        request.setChannel(NotificationChannel.EMAIL);
-        request.setPriority(NotificationPriority.HIGH);
-        request.setSubject("Test Subject");
-        request.setContent("Test content");
-        request.setRecipientId(1L);
-        request.setRecipientEmail("user@example.com");
-        request.setSenderId(100L);
-        request.setSenderEmail("sender@example.com");
-
-        // When
-        Notification entity = mapper.toEntity(request);
-
-        // Then
-        assertThat(entity).isNotNull();
-        assertThat(entity.getType()).isEqualTo(NotificationType.SYSTEM_ALERT);
-        assertThat(entity.getChannel()).isEqualTo(NotificationChannel.EMAIL);
-        assertThat(entity.getPriority()).isEqualTo(NotificationPriority.HIGH);
-        assertThat(entity.getSubject()).isEqualTo("Test Subject");
-        assertThat(entity.getContent()).isEqualTo("Test content");
-        assertThat(entity.getRecipientId()).isEqualTo(1L);
-        assertThat(entity.getRecipientEmail()).isEqualTo("user@example.com");
-        assertThat(entity.getSenderId()).isEqualTo(100L);
-        assertThat(entity.getSenderEmail()).isEqualTo("sender@example.com");
-        assertThat(entity.getMetadata()).isNotNull();
-        assertThat(entity.getAttachments()).isNotNull();
-    }
-
-    @Test
-    void shouldMapEntityToResponse() {
-        // Given
-        Notification entity = Notification.builder()
-                .id(1L)
-                .type(NotificationType.SYSTEM_ALERT)
-                .status(NotificationStatus.PENDING)
+    void toEntity_ShouldMapAllFields() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test Notification")
+                .message("This is a test message")
+                .recipientUser(1L)
+                .recipientEmail("user@example.com")
+                .notificationType(NotificationChannel.EMAIL)
                 .priority(NotificationPriority.HIGH)
                 .channel(NotificationChannel.EMAIL)
-                .subject("Test Subject")
-                .content("Test content")
-                .recipientId(1L)
-                .recipientEmail("user@example.com")
-                .senderId(100L)
-                .senderEmail("sender@example.com")
-                .metadata(Collections.singletonMap("key", "value"))
-                .attachments(Collections.singletonList("http://example.com/file.pdf"))
+                .remarks("Test remarks")
+                .billId(100L)
+                .energyAlertId(200L)
+                .meterEventId(300L)
                 .build();
 
-        // When
-        NotificationResponse response = mapper.toResponse(entity);
+        Notification entity = mapper.toEntity(request);
 
-        // Then
-        assertThat(response).isNotNull();
-        assertThat(response.getId()).isEqualTo(1L);
-        assertThat(response.getType()).isEqualTo(NotificationType.SYSTEM_ALERT);
-        assertThat(response.getStatus()).isEqualTo(NotificationStatus.PENDING);
-        assertThat(response.getPriority()).isEqualTo(NotificationPriority.HIGH);
-        assertThat(response.getChannel()).isEqualTo(NotificationChannel.EMAIL);
-        assertThat(response.getSubject()).isEqualTo("Test Subject");
-        assertThat(response.getRecipientEmail()).isEqualTo("user@example.com");
-        assertThat(response.getMetadata()).containsEntry("key", "value");
-        assertThat(response.getAttachments()).contains("http://example.com/file.pdf");
+        assertNotNull(entity);
+        assertEquals("Test Notification", entity.getTitle());
+        assertEquals("This is a test message", entity.getMessage());
+        assertEquals(1L, entity.getRecipientUser());
+        assertEquals("user@example.com", entity.getRecipientEmail());
+        assertEquals(NotificationChannel.EMAIL, entity.getNotificationType());
+        assertEquals(NotificationPriority.HIGH, entity.getPriority());
+        assertEquals(NotificationChannel.EMAIL, entity.getChannel());
+        assertEquals("Test remarks", entity.getRemarks());
+        assertEquals(100L, entity.getBillId());
+        assertEquals(200L, entity.getEnergyAlertId());
+        assertEquals(300L, entity.getMeterEventId());
     }
 
     @Test
-    void shouldReturnNullForNullEntity() {
-        assertThat(mapper.toResponse(null)).isNull();
-        assertThat(mapper.toTemplateResponse(null)).isNull();
-        assertThat(mapper.toPreferenceResponse(null)).isNull();
+    void toEntity_ShouldHandleNullScheduledTime() {
+        CreateNotificationRequest request = CreateNotificationRequest.builder()
+                .title("Test")
+                .message("Message")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.LOW)
+                .channel(NotificationChannel.EMAIL)
+                .build();
+
+        Notification entity = mapper.toEntity(request);
+
+        assertNull(entity.getScheduledTime());
+    }
+
+    @Test
+    void toResponse_ShouldMapAllFields() {
+        Notification entity = Notification.builder()
+                .id(1L)
+                .title("Test Notification")
+                .message("Test message")
+                .recipientUser(1L)
+                .recipientEmail("user@example.com")
+                .notificationType(NotificationChannel.EMAIL)
+                .priority(NotificationPriority.CRITICAL)
+                .status(NotificationStatus.PENDING)
+                .channel(NotificationChannel.SMS)
+                .scheduledTime(LocalDateTime.of(2026, 8, 1, 10, 0))
+                .sentTime(LocalDateTime.of(2026, 8, 1, 10, 5))
+                .readTime(LocalDateTime.of(2026, 8, 1, 11, 0))
+                .retryCount(0)
+                .remarks("Test remarks")
+                .billId(100L)
+                .energyAlertId(200L)
+                .meterEventId(300L)
+                .createdAt(LocalDateTime.of(2026, 8, 1, 9, 0))
+                .updatedAt(LocalDateTime.of(2026, 8, 1, 9, 30))
+                .build();
+
+        NotificationResponse response = mapper.toResponse(entity);
+
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertEquals("Test Notification", response.getTitle());
+        assertEquals("Test message", response.getMessage());
+        assertEquals(1L, response.getRecipientUser());
+        assertEquals("user@example.com", response.getRecipientEmail());
+        assertEquals("EMAIL", response.getNotificationType());
+        assertEquals("CRITICAL", response.getPriority());
+        assertEquals("PENDING", response.getStatus());
+        assertEquals("SMS", response.getChannel());
+        assertNotNull(response.getScheduledTime());
+        assertNotNull(response.getSentTime());
+        assertNotNull(response.getReadTime());
+        assertEquals(0, response.getRetryCount());
+        assertEquals("Test remarks", response.getRemarks());
+        assertEquals(100L, response.getBillId());
+        assertEquals(200L, response.getEnergyAlertId());
+        assertEquals(300L, response.getMeterEventId());
+    }
+
+    @Test
+    void updateEntity_ShouldUpdateNonNullFields() {
+        Notification entity = Notification.builder()
+                .id(1L)
+                .title("Original Title")
+                .message("Original message")
+                .priority(NotificationPriority.LOW)
+                .build();
+
+        UpdateNotificationRequest request = UpdateNotificationRequest.builder()
+                .title("Updated Title")
+                .priority(NotificationPriority.HIGH)
+                .build();
+
+        mapper.updateEntity(entity, request);
+
+        assertEquals("Updated Title", entity.getTitle());
+        assertEquals(NotificationPriority.HIGH, entity.getPriority());
+        assertEquals("Original message", entity.getMessage());
     }
 }

@@ -1,39 +1,41 @@
 package com.powersphere.notification.dto.request;
 
-import com.powersphere.notification.enums.NotificationPriority;
-import com.powersphere.notification.enums.NotificationStatus;
+import com.powersphere.notification.model.NotificationChannel;
+import com.powersphere.notification.model.NotificationPriority;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-/**
- * Request DTO for updating an existing notification.
- */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UpdateNotificationRequest {
 
-    private NotificationStatus status;
+    private String title;
+
+    private String message;
+
+    private Long recipientUser;
+
+    private String recipientEmail;
+
+    private String recipientPhone;
+
+    private NotificationChannel notificationType;
+
     private NotificationPriority priority;
-    private String subject;
-    private String content;
-    private LocalDateTime scheduledFor;
-    private Integer maxRetries;
 
-    // --- Getters and Setters ---
+    private NotificationChannel channel;
 
-    public NotificationStatus getStatus() { return status; }
-    public void setStatus(NotificationStatus status) { this.status = status; }
+    private LocalDateTime scheduledTime;
 
-    public NotificationPriority getPriority() { return priority; }
-    public void setPriority(NotificationPriority priority) { this.priority = priority; }
+    private String remarks;
 
-    public String getSubject() { return subject; }
-    public void setSubject(String subject) { this.subject = subject; }
+    private Long billId;
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    private Long energyAlertId;
 
-    public LocalDateTime getScheduledFor() { return scheduledFor; }
-    public void setScheduledFor(LocalDateTime scheduledFor) { this.scheduledFor = scheduledFor; }
-
-    public Integer getMaxRetries() { return maxRetries; }
-    public void setMaxRetries(Integer maxRetries) { this.maxRetries = maxRetries; }
+    private Long meterEventId;
 }

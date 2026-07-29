@@ -1,25 +1,24 @@
 package com.powersphere.notification.service.impl;
 
+import com.powersphere.notification.dto.request.CreateNotificationRequest;
 import com.powersphere.notification.dto.request.NotificationSearchRequest;
-import com.powersphere.notification.dto.request.SendNotificationRequest;
 import com.powersphere.notification.dto.request.UpdateNotificationRequest;
 import com.powersphere.notification.dto.response.NotificationResponse;
-import com.powersphere.notification.dto.response.PageResponse;
+import com.powersphere.notification.dto.response.PagedResponse;
 import com.powersphere.notification.entity.Notification;
-import com.powersphere.notification.entity.NotificationTemplate;
-import com.powersphere.notification.enums.NotificationStatus;
-import com.powersphere.notification.event.NotificationBatchEvent;
-import com.powersphere.notification.event.NotificationEvent;
-import com.powersphere.notification.event.NotificationStatusChangeEvent;
+import com.powersphere.notification.event.NotificationCreatedEvent;
+import com.powersphere.notification.event.NotificationReadEvent;
+import com.powersphere.notification.event.NotificationSentEvent;
 import com.powersphere.notification.exception.NotificationNotFoundException;
 import com.powersphere.notification.mapper.NotificationMapper;
+import com.powersphere.notification.model.NotificationChannel;
+import com.powersphere.notification.model.NotificationPriority;
+import com.powersphere.notification.model.NotificationStatus;
 import com.powersphere.notification.repository.NotificationRepository;
-import com.powersphere.notification.repository.NotificationTemplateRepository;
 import com.powersphere.notification.service.NotificationService;
-import com.powersphere.notification.util.NotificationTemplateEngine;
 import com.powersphere.notification.validation.NotificationValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,273 +28,172 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Implementation of the {@link NotificationService} interface. Handles the
- * full lifecycle of notifications from creation through delivery tracking.
- */
 @Service
+@RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class NotificationServiceImpl implements NotificationService {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
-
     private final NotificationRepository notificationRepository;
-    private final NotificationTemplateRepository templateRepository;
-    private final NotificationMapper mapper;
-    private final NotificationValidator validator;
-    private final NotificationTemplateEngine templateEngine;
+    private final NotificationMapper notificationMapper;
+    private final NotificationValidator notificationValidator;
     private final ApplicationEventPublisher eventPublisher;
 
-    public NotificationServiceImpl(
-            NotificationRepository notificationRepository,
-            NotificationTemplateRepository templateRepository,
-            NotificationMapper mapper,
-            NotificationValidator validator,
-            NotificationTemplateEngine templateEngine,
-            ApplicationEventPublisher eventPublisher) {
-        this.notificationRepository = notificationRepository;
-        this.templateRepository = templateRepository;
-        this.mapper = mapper;
-        this.validator = validator;
-        this.templateEngine = templateEngine;
-        this.eventPublisher = eventPublisher;
-    }
-
     @Override
-    public NotificationResponse sendNotification(SendNotificationRequest request) {
-        // Validate request
-        List<String> errors = validator.validate(request);
-        if (!errors.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Validation failed: " + String.join("; ", errors));
+    public NotificationResponse createNotification(CreateNotificationRequest request) {
+        notificationValidator.validateCreate(request);
+
+        Notification notification = notificationMapper.toEntity(request);
+        notification.setStatus(NotificationStatus.PENDING);
+        notification.setRetryCount(0);
+
+        if (request.getScheduledTime() != null) {
+            notificationValidator.validateScheduledNotification(request);
         }
 
-        // Resolve template if provided
-        if (request.getTemplateCode() != null && !request.getTemplateCode().isBlank()) {
-            resolveTemplate(request);
-        }
+        Notification saved = notificationRepository.save(notification);
+        eventPublisher.publishEvent(new NotificationCreatedEvent(this, saved));
 
-        // Create notification entity
-        Notification notification = mapper.toEntity(request);
-
-        // Save notification
-        notification = notificationRepository.save(notification);
-
-        log.info("Notification created: id={}, type={}, channel={}, recipientId={}",
-                notification.getId(), notification.getType(),
-                notification.getChannel(), notification.getRecipientId());
-
-        // Publish event for async processing
-        eventPublisher.publishEvent(new NotificationEvent(this, notification));
-
-        return mapper.toResponse(notification);
-    }
-
-    @Override
-    public List<NotificationResponse> sendBatchNotifications(List<SendNotificationRequest> requests) {
-        if (requests == null || requests.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // Validate all requests and resolve templates
-        List<Notification> notifications = requests.stream()
-                .peek(request -> {
-                    List<String> errors = validator.validate(request);
-                    if (!errors.isEmpty()) {
-                        throw new IllegalArgumentException(
-                                "Validation failed: " + String.join("; ", errors));
-                    }
-                    if (request.getTemplateCode() != null && !request.getTemplateCode().isBlank()) {
-                        resolveTemplate(request);
-                    }
-                })
-                .map(mapper::toEntity)
-                .collect(Collectors.toList());
-
-        // Batch save
-        notifications = notificationRepository.saveAll(notifications);
-
-        log.info("Batch notification created: count={}", notifications.size());
-
-        // Publish batch event
-        eventPublisher.publishEvent(new NotificationBatchEvent(this, notifications));
-
-        return mapper.toResponseList(notifications);
+        log.info("Notification created successfully: id={}, title='{}'", saved.getId(), saved.getTitle());
+        return notificationMapper.toResponse(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public NotificationResponse getNotification(Long id) {
-        Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new NotificationNotFoundException(id));
-        return mapper.toResponse(notification);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public NotificationResponse getNotificationForRecipient(Long notificationId, Long recipientId) {
-        Notification notification = notificationRepository.findByIdAndRecipientId(notificationId, recipientId)
-                .orElseThrow(() -> new NotificationNotFoundException(
-                        "Notification not found for id: " + notificationId + " and recipient: " + recipientId));
-        return mapper.toResponse(notification);
+    public NotificationResponse getNotificationById(Long id) {
+        Notification notification = findNotificationOrThrow(id);
+        return notificationMapper.toResponse(notification);
     }
 
     @Override
     public NotificationResponse updateNotification(Long id, UpdateNotificationRequest request) {
-        Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new NotificationNotFoundException(id));
+        notificationValidator.validateUpdate(request);
 
-        NotificationStatus previousStatus = notification.getStatus();
+        Notification notification = findNotificationOrThrow(id);
+        notificationMapper.updateEntity(notification, request);
+        Notification updated = notificationRepository.save(notification);
 
-        Optional.ofNullable(request.getStatus()).ifPresent(notification::setStatus);
-        Optional.ofNullable(request.getPriority()).ifPresent(notification::setPriority);
-        Optional.ofNullable(request.getSubject()).ifPresent(notification::setSubject);
-        Optional.ofNullable(request.getContent()).ifPresent(notification::setContent);
-        Optional.ofNullable(request.getScheduledFor()).ifPresent(notification::setScheduledFor);
-        Optional.ofNullable(request.getMaxRetries()).ifPresent(notification::setMaxRetries);
-
-        notification = notificationRepository.save(notification);
-
-        // Publish status change event if status changed
-        if (request.getStatus() != null && !request.getStatus().equals(previousStatus)) {
-            eventPublisher.publishEvent(new NotificationStatusChangeEvent(
-                    this, notification, previousStatus, notification.getStatus()));
-        }
-
-        return mapper.toResponse(notification);
+        log.info("Notification updated: id={}", updated.getId());
+        return notificationMapper.toResponse(updated);
     }
 
     @Override
     public void deleteNotification(Long id) {
-        if (!notificationRepository.existsById(id)) {
-            throw new NotificationNotFoundException(id);
-        }
-        notificationRepository.deleteById(id);
+        Notification notification = findNotificationOrThrow(id);
+        notificationRepository.delete(notification);
         log.info("Notification deleted: id={}", id);
     }
 
     @Override
-    public NotificationResponse markAsRead(Long notificationId, Long recipientId) {
-        Notification notification = notificationRepository.findByIdAndRecipientId(notificationId, recipientId)
-                .orElseThrow(() -> new NotificationNotFoundException(
-                        "Notification not found for id: " + notificationId + " and recipient: " + recipientId));
-
-        NotificationStatus previousStatus = notification.getStatus();
-        notification.markRead();
-        notification = notificationRepository.save(notification);
-
-        eventPublisher.publishEvent(new NotificationStatusChangeEvent(
-                this, notification, previousStatus, notification.getStatus()));
-
-        return mapper.toResponse(notification);
+    @Transactional(readOnly = true)
+    public PagedResponse<NotificationResponse> getAllNotifications(Pageable pageable) {
+        Page<Notification> notificationPage = notificationRepository.findAll(pageable);
+        return buildPagedResponse(notificationPage, pageable);
     }
 
     @Override
-    public NotificationResponse archiveNotification(Long id) {
-        Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new NotificationNotFoundException(id));
+    public NotificationResponse markAsRead(Long id) {
+        Notification notification = findNotificationOrThrow(id);
 
-        NotificationStatus previousStatus = notification.getStatus();
-        notification.archive();
-        notification = notificationRepository.save(notification);
-
-        eventPublisher.publishEvent(new NotificationStatusChangeEvent(
-                this, notification, previousStatus, notification.getStatus()));
-
-        return mapper.toResponse(notification);
-    }
-
-    @Override
-    public int archiveAllRead(Long recipientId) {
-        int archived = notificationRepository.archiveAllReadByRecipient(recipientId);
-        if (archived > 0) {
-            log.info("Archived {} read notifications for recipientId={}", archived, recipientId);
+        if (notification.getStatus() == NotificationStatus.READ) {
+            throw new IllegalStateException("Notification is already marked as read");
         }
-        return archived;
+
+        notification.setStatus(NotificationStatus.READ);
+        notification.setReadTime(LocalDateTime.now());
+        Notification saved = notificationRepository.save(notification);
+
+        eventPublisher.publishEvent(new NotificationReadEvent(this, saved));
+        log.info("Notification marked as read: id={}", saved.getId());
+        return notificationMapper.toResponse(saved);
     }
 
     @Override
     public NotificationResponse cancelNotification(Long id) {
-        Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new NotificationNotFoundException(id));
+        Notification notification = findNotificationOrThrow(id);
 
-        if (notification.cancel()) {
-            notification = notificationRepository.save(notification);
-            log.info("Notification cancelled: id={}", id);
-        } else {
+        if (notification.getStatus() == NotificationStatus.SENT
+                || notification.getStatus() == NotificationStatus.READ) {
             throw new IllegalStateException(
-                    "Cannot cancel notification " + id + " with status " + notification.getStatus());
+                    "Cannot cancel notification with status: " + notification.getStatus());
         }
 
-        return mapper.toResponse(notification);
+        notification.setStatus(NotificationStatus.FAILED);
+        notification.setRemarks("Notification cancelled by user");
+        Notification saved = notificationRepository.save(notification);
+
+        log.info("Notification cancelled: id={}", saved.getId());
+        return notificationMapper.toResponse(saved);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public PageResponse<NotificationResponse> searchNotifications(NotificationSearchRequest request) {
-        Sort sort = Sort.by(
-                Sort.Direction.fromString(request.getSortDirection()),
-                request.getSortBy());
-        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
-
-        Page<Notification> page = notificationRepository.searchNotifications(
-                request.getRecipientId(),
-                request.getSenderId(),
-                request.getOrganizationId(),
-                request.getType(),
-                request.getStatus(),
-                request.getPriority(),
-                request.getChannel(),
-                request.getDateFrom(),
-                request.getDateTo(),
-                request.getQuery(),
-                pageable);
-
-        return mapper.toPageResponse(page);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public PageResponse<NotificationResponse> getNotificationsByRecipient(Long recipientId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Notification> notificationPage = notificationRepository.findByRecipientId(recipientId, pageable);
-        return mapper.toPageResponse(notificationPage);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public long getUnreadCount(Long recipientId) {
-        return notificationRepository.countByRecipientIdAndStatus(recipientId, NotificationStatus.DELIVERED);
-    }
-
-    /**
-     * Resolves and renders a notification template for the given request.
-     * Populates the subject and content from the template if not already set.
-     */
-    private void resolveTemplate(SendNotificationRequest request) {
-        Optional<NotificationTemplate> templateOpt = templateRepository.findByCode(request.getTemplateCode());
-        if (templateOpt.isEmpty()) {
-            log.warn("Template not found for code: {}, proceeding with raw content", request.getTemplateCode());
-            return;
+    public PagedResponse<NotificationResponse> searchNotifications(NotificationSearchRequest searchRequest) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        if (searchRequest.getSortBy() != null && !searchRequest.getSortBy().isEmpty()) {
+            Sort.Direction direction = Sort.Direction.DESC;
+            if ("asc".equalsIgnoreCase(searchRequest.getSortDirection())) {
+                direction = Sort.Direction.ASC;
+            }
+            sort = Sort.by(direction, searchRequest.getSortBy());
         }
 
-        NotificationTemplate template = templateOpt.get();
-        Map<String, String> variables = Optional.ofNullable(request.getTemplateVariables())
-                .orElse(Collections.emptyMap());
+        int page = Math.max(searchRequest.getPage(), 0);
+        int size = searchRequest.getSize() > 0 ? searchRequest.getSize() : 10;
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        NotificationTemplateEngine.RenderedContent rendered = templateEngine.renderTemplate(template, variables);
+        NotificationStatus status = null;
+        if (searchRequest.getStatus() != null && !searchRequest.getStatus().isEmpty()) {
+            status = NotificationStatus.valueOf(searchRequest.getStatus().toUpperCase());
+        }
 
-        if (request.getSubject() == null || request.getSubject().isBlank()) {
-            request.setSubject(rendered.getSubject());
+        NotificationPriority priority = null;
+        if (searchRequest.getPriority() != null && !searchRequest.getPriority().isEmpty()) {
+            priority = NotificationPriority.valueOf(searchRequest.getPriority().toUpperCase());
         }
-        if (request.getContent() == null || request.getContent().isBlank()) {
-            request.setContent(rendered.getBody());
+
+        NotificationChannel channel = null;
+        if (searchRequest.getChannel() != null && !searchRequest.getChannel().isEmpty()) {
+            channel = NotificationChannel.valueOf(searchRequest.getChannel().toUpperCase());
         }
+
+        Page<Notification> notificationPage = notificationRepository.searchNotifications(
+                searchRequest.getTitle(),
+                status,
+                priority,
+                channel,
+                searchRequest.getRecipientUser(),
+                searchRequest.getStartDate(),
+                searchRequest.getEndDate(),
+                pageable
+        );
+
+        return buildPagedResponse(notificationPage, pageable);
+    }
+
+    private Notification findNotificationOrThrow(Long id) {
+        return notificationRepository.findById(id)
+                .orElseThrow(() -> new NotificationNotFoundException(id));
+    }
+
+    private PagedResponse<NotificationResponse> buildPagedResponse(Page<Notification> page, Pageable pageable) {
+        Sort.Order sortOrder = pageable.getSort().stream().findFirst().orElse(null);
+        return PagedResponse.<NotificationResponse>builder()
+                .content(page.getContent().stream()
+                        .map(notificationMapper::toResponse)
+                        .collect(Collectors.toList()))
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .last(page.isLast())
+                .first(page.isFirst())
+                .empty(page.isEmpty())
+                .numberOfElements(page.getNumberOfElements())
+                .sortBy(sortOrder != null ? sortOrder.getProperty() : null)
+                .sortDirection(sortOrder != null ? sortOrder.getDirection().name().toLowerCase() : null)
+                .build();
     }
 }
