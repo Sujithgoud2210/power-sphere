@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -23,18 +23,6 @@ public class UserProfileResponse {
     private String firstName;
     private String lastName;
     private String phone;
-    private String status;
-    private boolean enabled;
-    private boolean accountLocked;
-    private boolean emailVerified;
-    private LocalDateTime lastLogin;
-    private Set<String> roles;
-    private UUID organizationId;
-    private String organizationName;
-    private UUID departmentId;
-    private String departmentName;
-    private UUID teamId;
-    private String teamName;
     private String employeeId;
     private String designation;
     private LocalDate joiningDate;
@@ -43,6 +31,18 @@ public class UserProfileResponse {
     private String address;
     private String emergencyContact;
     private String profileImageUrl;
+    private String status;
+    private boolean enabled;
+    private boolean accountLocked;
+    private boolean emailVerified;
+    private List<String> roles;
+    private UUID organizationId;
+    private String organizationName;
+    private UUID departmentId;
+    private String departmentName;
+    private UUID teamId;
+    private String teamName;
+    private LocalDateTime lastLogin;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

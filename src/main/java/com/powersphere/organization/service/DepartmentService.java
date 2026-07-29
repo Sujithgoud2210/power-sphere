@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface DepartmentService {
 
-    DepartmentResponse createDepartment(UUID organizationId, DepartmentRequest request);
+    DepartmentResponse createDepartment(DepartmentRequest request);
 
     DepartmentResponse updateDepartment(UUID id, DepartmentRequest request);
 
@@ -17,4 +17,8 @@ public interface DepartmentService {
     DepartmentResponse getDepartmentById(UUID id);
 
     List<DepartmentResponse> getDepartmentsByOrganization(UUID organizationId);
+
+    List<DepartmentResponse> searchDepartments(String name);
+
+    List<DepartmentResponse> getAllDepartments();
 }

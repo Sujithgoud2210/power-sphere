@@ -13,6 +13,12 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * OpenAPI (Swagger) documentation configuration.
+ * <p>
+ * Configures the API documentation metadata including title, version,
+ * contact information, and server URLs for different environments.
+ */
 @Configuration
 public class OpenApiConfig {
 
@@ -34,22 +40,16 @@ public class OpenApiConfig {
                                 .url("https://www.apache.org/licenses/LICENSE-2.0")))
                 .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
                 .components(new Components()
-                        .addSecuritySchemes(SECURITY_SCHEME_NAME,
-                                new SecurityScheme()
-                                        .name(SECURITY_SCHEME_NAME)
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")
-                                        .description("Provide a JWT access token. Example: Bearer <token>")))
+                        .addSecuritySchemes(SECURITY_SCHEME_NAME, new SecurityScheme()
+                                .name(SECURITY_SCHEME_NAME)
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .description("Provide a JWT access token. Example: Bearer <token>")))
                 .servers(List.of(
-                        new Server()
-                                .url("http://localhost:8080")
-                                .description("Development"),
-                        new Server()
-                                .url("https://api-dev.powersphere.com")
-                                .description("Staging"),
-                        new Server()
-                                .url("https://api.powersphere.com")
-                                .description("Production")));
+                        new Server().url("http://localhost:8080").description("Development"),
+                        new Server().url("https://api-dev.powersphere.com").description("Staging"),
+                        new Server().url("https://api.powersphere.com").description("Production")
+                ));
     }
 }

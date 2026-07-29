@@ -1,7 +1,10 @@
 package com.powersphere.organization.exception;
 
+import java.io.Serial;
+
 public class DuplicateDepartmentException extends RuntimeException {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public DuplicateDepartmentException(String message) {

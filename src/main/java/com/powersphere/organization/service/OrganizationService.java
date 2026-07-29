@@ -18,7 +18,7 @@ public interface OrganizationService {
 
     List<OrganizationResponse> getAllOrganizations();
 
-    List<OrganizationResponse> searchOrganizations(String searchTerm);
+    List<OrganizationResponse> searchOrganizations(String name);
 
     List<OrganizationResponse> getOrganizationsByStatus(String status);
 }

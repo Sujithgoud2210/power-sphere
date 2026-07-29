@@ -5,12 +5,13 @@ import com.powersphere.users.dto.response.UserProfileResponse;
 import com.powersphere.users.entity.UserProfile;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.Named;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring")
 public interface UserProfileMapper {
 
     @Mapping(target = "userId", source = "user.id")
@@ -24,7 +25,7 @@ public interface UserProfileMapper {
     @Mapping(target = "accountLocked", source = "user.accountLocked")
     @Mapping(target = "emailVerified", source = "user.emailVerified")
     @Mapping(target = "lastLogin", source = "user.lastLogin")
-    @Mapping(target = "roles", expression = "java(rolesToNames(userProfile.getUser().getRoles()))")
+    @Mapping(target = "roles", source = "user.roles", qualifiedByName = "rolesToNames")
     @Mapping(target = "organizationId", source = "organization.id")
     @Mapping(target = "organizationName", source = "organization.organizationName")
     @Mapping(target = "departmentId", source = "department.id")
@@ -33,12 +34,13 @@ public interface UserProfileMapper {
     @Mapping(target = "teamName", source = "team.name")
     UserProfileResponse toResponse(UserProfile userProfile);
 
-    default Set<String> rolesToNames(Set<Role> roles) {
+    @Named("rolesToNames")
+    default List<String> rolesToNames(Set<Role> roles) {
         if (roles == null) {
-            return Set.of();
+            return List.of();
         }
         return roles.stream()
                 .map(Role::getName)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 }

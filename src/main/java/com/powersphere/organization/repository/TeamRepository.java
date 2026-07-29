@@ -17,5 +17,9 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
 
     List<Team> findByDepartmentId(UUID departmentId);
 
+    List<Team> findByNameContainingIgnoreCase(String name);
+
+    List<Team> findByDepartmentIdAndIsActiveTrue(UUID departmentId);
+
     List<Team> findByIsActiveTrue();
 }

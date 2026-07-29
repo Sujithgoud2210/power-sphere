@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface TeamService {
 
-    TeamResponse createTeam(UUID departmentId, TeamRequest request);
+    TeamResponse createTeam(TeamRequest request);
 
     TeamResponse updateTeam(UUID id, TeamRequest request);
 
@@ -17,4 +17,8 @@ public interface TeamService {
     TeamResponse getTeamById(UUID id);
 
     List<TeamResponse> getTeamsByDepartment(UUID departmentId);
+
+    List<TeamResponse> searchTeams(String name);
+
+    List<TeamResponse> getAllTeams();
 }

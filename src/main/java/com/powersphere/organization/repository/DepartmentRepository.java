@@ -17,5 +17,9 @@ public interface DepartmentRepository extends JpaRepository<Department, UUID> {
 
     List<Department> findByOrganizationId(UUID organizationId);
 
+    List<Department> findByNameContainingIgnoreCase(String name);
+
+    List<Department> findByOrganizationIdAndIsActiveTrue(UUID organizationId);
+
     List<Department> findByIsActiveTrue();
 }

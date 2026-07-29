@@ -17,7 +17,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
 
     List<Organization> findByIsActiveTrue();
 
-    List<Organization> findByOrganizationNameContainingIgnoreCase(String organizationName);
+    List<Organization> findByOrganizationNameContainingIgnoreCase(String name);
 
     List<Organization> findByStatus(String status);
 }
