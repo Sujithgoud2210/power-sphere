@@ -1,0 +1,29 @@
+# IntelliJ IDEA
+.idea/
+
+
+*.iml
+
+# Maven
+target/
+
+# Logs
+logs/
+*.log
+
+# Java
+*.class
+
+# Environment
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+out/
