@@ -35,6 +35,17 @@ public class ApiResponse<T> implements Serializable {
     private LocalDateTime timestamp;
 
     /**
+     * Create a success response with default message and no data.
+     */
+    public static <T> ApiResponse<T> success() {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .message("Operation completed successfully")
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    /**
      * Create a success response with data.
      */
     public static <T> ApiResponse<T> success(T data) {
@@ -42,6 +53,17 @@ public class ApiResponse<T> implements Serializable {
                 .success(true)
                 .message("Operation completed successfully")
                 .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    /**
+     * Create a success response with custom message and no data.
+     */
+    public static <T> ApiResponse<T> success(String message) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .message(message)
                 .timestamp(LocalDateTime.now())
                 .build();
     }

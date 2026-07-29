@@ -125,11 +125,23 @@ info:
 # =============================================================================
 # Logging Configuration
 # =============================================================================
+# =============================================================================
+# JWT Configuration
+# =============================================================================
+jwt:
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970337336763979244226452948404D6351655468576D5A7134743777217A25432A}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
 logging:
   config: classpath:logback-spring.xml
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
     com.powersphere: ${LOG_LEVEL_APP:DEBUG}
     org.springframework: ${LOG_LEVEL_SPRING:WARN}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
     org.hibernate: ${LOG_LEVEL_HIBERNATE:WARN}
     org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}

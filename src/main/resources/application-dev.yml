@@ -52,3 +52,17 @@ springdoc:
     enabled: true
   api-docs:
     enabled: true
+
+# JWT Configuration
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970337336763979244226452948404D6351655468576D5A7134743777217A25432A
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+
+# Default admin credentials (dev only)
+app:
+  admin:
+    email: admin@powersphere.com
+    password: Admin@123
+    first-name: System
+    last-name: Administrator
