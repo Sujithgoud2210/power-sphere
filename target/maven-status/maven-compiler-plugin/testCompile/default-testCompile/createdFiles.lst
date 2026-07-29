@@ -1,0 +1,11 @@
+com\powersphere\meter\service\MeterServiceImplTest$ActivateDeactivateMeter.class
+com\powersphere\meter\service\MeterServiceImplTest$AssignTransferMeter.class
+com\powersphere\meter\service\MeterServiceImplTest$DeleteMeter.class
+com\powersphere\meter\service\MeterServiceImplTest$GetMeter.class
+com\powersphere\meter\service\MeterServiceImplTest$RegisterMeter.class
+com\powersphere\meter\service\MeterServiceImplTest.class
+com\powersphere\meter\validation\MeterValidatorTest.class
+com\powersphere\meter\mapper\MeterMapperTest.class
+com\powersphere\meter\repository\SmartMeterRepositoryTest.class
+com\powersphere\meter\service\MeterServiceImplTest$SearchFilterMeters.class
+com\powersphere\meter\service\MeterServiceImplTest$UpdateMeter.class
