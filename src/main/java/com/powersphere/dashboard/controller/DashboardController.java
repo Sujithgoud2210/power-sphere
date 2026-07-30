@@ -6,6 +6,12 @@ import com.powersphere.dashboard.dto.response.DashboardResponse;
 import com.powersphere.dashboard.dto.response.OrganizationSummaryResponse;
 import com.powersphere.dashboard.dto.response.RevenueTrendResponse;
 import com.powersphere.dashboard.service.DashboardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,6 +24,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/dashboard")
+@Tag(name = "Dashboard", description = "Real-time dashboards with consumption trends, revenue analytics, and organizational comparisons")
 public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
@@ -33,6 +40,15 @@ public class DashboardController {
      * Returns aggregated dashboard summary with counts and metrics from all modules.
      */
     @GetMapping("/summary")
+    @Operation(summary = "Get dashboard summary",
+            description = "Returns an aggregated dashboard summary with key metrics and counts from all modules including total users, meters, organizations, active bills, and energy consumption statistics.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Dashboard summary retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Authentication required"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     public ResponseEntity<ApiResponse<DashboardResponse>> getDashboardSummary() {
         log.info("REST request to get dashboard summary");
         DashboardResponse summary = dashboardService.getDashboardSummary();
@@ -42,16 +58,18 @@ public class DashboardController {
     /**
      * GET /api/v1/dashboard/consumption
      * Returns consumption trend data for the specified period.
-     *
-     * @param period    DAILY, MONTHLY, or YEARLY
-     * @param startDate optional start date (yyyy-MM-dd)
-     * @param endDate   optional end date (yyyy-MM-dd)
      */
     @GetMapping("/consumption")
+    @Operation(summary = "Get consumption trends",
+            description = "Returns energy consumption trend data for the specified period (DAILY, MONTHLY, or YEARLY) with optional date range filtering.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Consumption trends retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<ConsumptionTrendResponse>> getConsumptionTrends(
-            @RequestParam(required = false, defaultValue = "DAILY") String period,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @Parameter(description = "Aggregation period (DAILY, MONTHLY, YEARLY)", example = "MONTHLY") @RequestParam(required = false, defaultValue = "DAILY") String period,
+            @Parameter(description = "Start date (yyyy-MM-dd) for filtering", example = "2024-01-01") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @Parameter(description = "End date (yyyy-MM-dd) for filtering", example = "2024-12-31") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("REST request to get consumption trends for period: {}", period);
         ConsumptionTrendResponse trends = dashboardService.getConsumptionTrends(period, startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(trends));
@@ -60,16 +78,18 @@ public class DashboardController {
     /**
      * GET /api/v1/dashboard/revenue
      * Returns revenue trend data for the specified period.
-     *
-     * @param period    DAILY, MONTHLY, or YEARLY
-     * @param startDate optional start date (yyyy-MM-dd)
-     * @param endDate   optional end date (yyyy-MM-dd)
      */
     @GetMapping("/revenue")
+    @Operation(summary = "Get revenue trends",
+            description = "Returns revenue trend data for the specified period (DAILY, MONTHLY, or YEARLY) with optional date range filtering.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Revenue trends retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<RevenueTrendResponse>> getRevenueTrends(
-            @RequestParam(required = false, defaultValue = "DAILY") String period,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @Parameter(description = "Aggregation period (DAILY, MONTHLY, YEARLY)", example = "MONTHLY") @RequestParam(required = false, defaultValue = "DAILY") String period,
+            @Parameter(description = "Start date (yyyy-MM-dd) for filtering", example = "2024-01-01") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @Parameter(description = "End date (yyyy-MM-dd) for filtering", example = "2024-12-31") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("REST request to get revenue trends for period: {}", period);
         RevenueTrendResponse trends = dashboardService.getRevenueTrends(period, startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(trends));
@@ -78,16 +98,18 @@ public class DashboardController {
     /**
      * GET /api/v1/dashboard/top-consumers
      * Returns top energy consumers by meter.
-     *
-     * @param limit     number of top consumers (default 10)
-     * @param startDate optional start date filter
-     * @param endDate   optional end date filter
      */
     @GetMapping("/top-consumers")
+    @Operation(summary = "Get top energy consumers",
+            description = "Returns the top energy consumers ranked by consumption, with optional date range filtering and configurable result limit.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Top consumers retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<List<OrganizationSummaryResponse>>> getTopConsumers(
-            @RequestParam(required = false, defaultValue = "10") int limit,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @Parameter(description = "Number of top consumers to return", example = "10") @RequestParam(required = false, defaultValue = "10") int limit,
+            @Parameter(description = "Start date (yyyy-MM-dd) for filtering", example = "2024-01-01") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @Parameter(description = "End date (yyyy-MM-dd) for filtering", example = "2024-12-31") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("REST request to get top {} consumers", limit);
         List<OrganizationSummaryResponse> consumers = dashboardService.getTopConsumers(limit, startDate, endDate);
         return ResponseEntity.ok(ApiResponse.success(consumers));
@@ -98,6 +120,12 @@ public class DashboardController {
      * Returns meter status distribution (counts by ACTIVE/INACTIVE).
      */
     @GetMapping("/meter-status-distribution")
+    @Operation(summary = "Get meter status distribution",
+            description = "Returns the distribution of smart meters by their status (ACTIVE, INACTIVE, FAULTY, etc.) as key-value pairs.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Meter status distribution retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<Map<String, Long>>> getMeterStatusDistribution() {
         log.info("REST request to get meter status distribution");
         Map<String, Long> distribution = dashboardService.getMeterStatusDistribution();
@@ -109,6 +137,12 @@ public class DashboardController {
      * Returns bill status distribution (counts by PENDING/PAID/OVERDUE).
      */
     @GetMapping("/bill-status-distribution")
+    @Operation(summary = "Get bill status distribution",
+            description = "Returns the distribution of bills by their status (PENDING, PAID, OVERDUE, CANCELLED, etc.) as key-value pairs.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Bill status distribution retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<Map<String, Long>>> getBillStatusDistribution() {
         log.info("REST request to get bill status distribution");
         Map<String, Long> distribution = dashboardService.getBillStatusDistribution();
@@ -120,6 +154,12 @@ public class DashboardController {
      * Returns comparative summary for all organizations.
      */
     @GetMapping("/organizations")
+    @Operation(summary = "Get organization comparisons",
+            description = "Returns a comparative summary for all organizations including consumption, revenue, and billing metrics.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Organization comparisons retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<List<OrganizationSummaryResponse>>> getOrganizationComparisons() {
         log.info("REST request to get organization comparisons");
         List<OrganizationSummaryResponse> comparisons = dashboardService.getOrganizationComparisons();
@@ -131,10 +171,16 @@ public class DashboardController {
      * Returns top organizations by revenue.
      */
     @GetMapping("/top-organizations")
+    @Operation(summary = "Get top organizations by revenue",
+            description = "Returns the top organizations ranked by revenue, with optional date range filtering and configurable result limit.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Top organizations retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<List<OrganizationSummaryResponse>>> getTopOrganizations(
-            @RequestParam(required = false, defaultValue = "10") int limit,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @Parameter(description = "Number of top organizations to return", example = "10") @RequestParam(required = false, defaultValue = "10") int limit,
+            @Parameter(description = "Start date (yyyy-MM-dd) for filtering", example = "2024-01-01") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @Parameter(description = "End date (yyyy-MM-dd) for filtering", example = "2024-12-31") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("REST request to get top {} organizations by revenue", limit);
         List<OrganizationSummaryResponse> organizations =
                 dashboardService.getTopOrganizations(limit, startDate, endDate);
@@ -146,6 +192,12 @@ public class DashboardController {
      * Returns peak consumption hours sorted by average consumption.
      */
     @GetMapping("/peak-hours")
+    @Operation(summary = "Get peak consumption hours",
+            description = "Returns the hours of the day with the highest average energy consumption, sorted by consumption level in descending order.",
+            tags = {"Dashboard"})
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Peak consumption hours retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<List<Integer>>> getPeakConsumptionHours() {
         log.info("REST request to get peak consumption hours");
         List<Integer> hours = dashboardService.getPeakConsumptionHours();

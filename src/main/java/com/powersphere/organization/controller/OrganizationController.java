@@ -6,6 +6,9 @@ import com.powersphere.organization.dto.request.OrganizationRequest;
 import com.powersphere.organization.dto.response.OrganizationResponse;
 import com.powersphere.organization.service.OrganizationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -45,7 +48,13 @@ public class OrganizationController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Create a new organization",
-            description = "Creates a new organization with the provided details")
+            description = "Creates a new organization with the provided details including code, name, address, and contact information.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Organization created successfully",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid input - validation failed"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Organization with same code already exists")
+    })
     public ResponseEntity<ApiResponse<OrganizationResponse>> createOrganization(
             @Valid @RequestBody OrganizationRequest request) {
         log.debug("POST /api/v1/organizations - code: {}", request.getOrganizationCode());
@@ -57,9 +66,14 @@ public class OrganizationController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Update an organization",
-            description = "Updates an existing organization by ID")
+            description = "Updates an existing organization's details including address, contact info, and status by its unique ID.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Organization updated successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid input"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Organization not found")
+    })
     public ResponseEntity<ApiResponse<OrganizationResponse>> updateOrganization(
-            @PathVariable UUID id,
+            @Parameter(description = "Organization UUID", example = "550e8400-e29b-41d4-a716-446655440000", required = true) @PathVariable UUID id,
             @Valid @RequestBody OrganizationRequest request) {
         log.debug("PUT /api/v1/organizations/{}", id);
         OrganizationResponse response = organizationService.updateOrganization(id, request);
@@ -69,8 +83,14 @@ public class OrganizationController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete an organization",
-            description = "Soft-deletes an organization by ID")
-    public ResponseEntity<ApiResponse<Void>> deleteOrganization(@PathVariable UUID id) {
+            description = "Soft-deletes an organization by ID, marking it as inactive without removing data from the database.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Organization deleted successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Organization not found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Organization has active dependencies")
+    })
+    public ResponseEntity<ApiResponse<Void>> deleteOrganization(
+            @Parameter(description = "Organization UUID", example = "550e8400-e29b-41d4-a716-446655440000", required = true) @PathVariable UUID id) {
         log.debug("DELETE /api/v1/organizations/{}", id);
         organizationService.deleteOrganization(id);
         return ResponseEntity.ok(ApiResponse.<Void>success("Organization deleted successfully"));
@@ -79,8 +99,13 @@ public class OrganizationController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'OPERATOR', 'VIEWER')")
     @Operation(summary = "Get organization by ID",
-            description = "Retrieves organization details by ID")
-    public ResponseEntity<ApiResponse<OrganizationResponse>> getOrganizationById(@PathVariable UUID id) {
+            description = "Retrieves detailed information about an organization including address, contact info, and current status by its unique ID.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Organization retrieved successfully"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Organization not found")
+    })
+    public ResponseEntity<ApiResponse<OrganizationResponse>> getOrganizationById(
+            @Parameter(description = "Organization UUID", example = "550e8400-e29b-41d4-a716-446655440000", required = true) @PathVariable UUID id) {
         log.debug("GET /api/v1/organizations/{}", id);
         OrganizationResponse response = organizationService.getOrganizationById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -89,7 +114,10 @@ public class OrganizationController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'OPERATOR', 'VIEWER')")
     @Operation(summary = "Get all organizations",
-            description = "Retrieves all active organizations")
+            description = "Retrieves a list of all active organizations in the system.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Organizations retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<List<OrganizationResponse>>> getAllOrganizations() {
         log.debug("GET /api/v1/organizations");
         List<OrganizationResponse> organizations = organizationService.getAllOrganizations();
@@ -99,9 +127,12 @@ public class OrganizationController {
     @GetMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'OPERATOR', 'VIEWER')")
     @Operation(summary = "Search organizations",
-            description = "Search organizations by name")
+            description = "Search organizations by name. Returns matching organizations whose name contains the search term.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Search results retrieved successfully")
+    })
     public ResponseEntity<ApiResponse<List<OrganizationResponse>>> searchOrganizations(
-            @RequestParam String name) {
+            @Parameter(description = "Organization name search term", example = "Acme Corp", required = true) @RequestParam String name) {
         log.debug("GET /api/v1/organizations/search?name={}", name);
         List<OrganizationResponse> organizations = organizationService.searchOrganizations(name);
         return ResponseEntity.ok(ApiResponse.success(organizations));

@@ -2,6 +2,7 @@ package com.powersphere.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,16 +23,23 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Standard API response wrapper returned by all endpoints")
 public class ApiResponse<T> implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "Indicates whether the operation was successful", example = "true")
     private boolean success;
+
+    @Schema(description = "Response message providing additional context", example = "Operation completed successfully")
     private String message;
+
+    @Schema(description = "Response payload data (type varies by endpoint)")
     private T data;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @Schema(description = "Timestamp when the response was generated", example = "2024-01-15T10:30:00.000Z")
     private LocalDateTime timestamp;
 
     /**
