@@ -1,8 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { ErrorFallback } from './ErrorFallback';
 
 interface Props {
   children: ReactNode;
+  fullPage?: boolean;
 }
 
 interface State {
@@ -21,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error.message, errorInfo.componentStack);
   }
 
   handleReset = (): void => {
@@ -35,33 +36,14 @@ export class ErrorBoundary extends Component<Props, State> {
   render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '100vh',
-            gap: 2,
-            p: 4,
-            textAlign: 'center',
-          }}
-        >
-          <Typography variant="h3" color="error" gutterBottom>
-            Something went wrong
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500 }}>
-            {this.state.error?.message || 'An unexpected error occurred.'}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-            <Button variant="outlined" onClick={this.handleReset}>
-              Try Again
-            </Button>
-            <Button variant="contained" onClick={this.handleReload}>
-              Reload Page
-            </Button>
-          </Box>
-        </Box>
+        <ErrorFallback
+          title="Something went wrong"
+          message="An unexpected error occurred. Please try again or return to the dashboard."
+          error={this.state.error}
+          onRetry={this.handleReset}
+          onHome={this.handleReload}
+          fullPage={this.props.fullPage}
+        />
       );
     }
 

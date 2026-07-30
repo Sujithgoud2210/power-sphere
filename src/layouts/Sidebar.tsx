@@ -50,9 +50,10 @@ interface SidebarProps {
   open: boolean;
   onClose: () => void;
   variant: 'permanent' | 'temporary';
+  collapsed?: boolean;
 }
 
-export function Sidebar({ open, onClose, variant }: SidebarProps) {
+export function Sidebar({ open, onClose, variant, collapsed = false }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -75,6 +76,7 @@ export function Sidebar({ open, onClose, variant }: SidebarProps) {
         bgcolor: 'background.paper',
         borderRight: '1px solid',
         borderColor: 'divider',
+        transition: 'width 0.2s ease',
       }}
     >
       {/* Logo */}
@@ -82,33 +84,39 @@ export function Sidebar({ open, onClose, variant }: SidebarProps) {
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
-          px: 2.5,
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          gap: collapsed ? 0 : 1.5,
+          px: collapsed ? 1 : 2.5,
           py: 2.5,
           minHeight: 64,
         }}
       >
-        <BoltIcon color="primary" sx={{ fontSize: 32 }} />
-        <Typography variant="h6" fontWeight={700} color="primary">
-          PowerSphere
-        </Typography>
+        <BoltIcon color="primary" sx={{ fontSize: collapsed ? 28 : 32 }} />
+        {!collapsed && (
+          <Typography variant="h6" fontWeight={700} color="primary">
+            PowerSphere
+          </Typography>
+        )}
       </Box>
 
       <Divider />
 
       {/* Main Navigation */}
-      <List sx={{ flex: 1, px: 1.5, py: 1 }} disablePadding>
+      <List sx={{ flex: 1, px: collapsed ? 1 : 1.5, py: 1 }} disablePadding>
         {SIDEBAR_MENU_ITEMS.map((item) => {
           const Icon = iconMap[item.icon];
           const active = isActive(item.path);
           return (
             <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
-              <Tooltip title={item.label} placement="right">
+              <Tooltip title={collapsed ? item.label : ''} placement="right" arrow>
                 <ListItemButton
                   onClick={() => handleNavigate(item.path)}
                   selected={active}
                   sx={{
                     borderRadius: 2,
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    px: collapsed ? 1 : 2,
+                    minHeight: collapsed ? 44 : 'auto',
                     '&.Mui-selected': {
                       bgcolor: 'primary.main',
                       color: 'primary.contrastText',
@@ -123,19 +131,22 @@ export function Sidebar({ open, onClose, variant }: SidebarProps) {
                 >
                   <ListItemIcon
                     sx={{
-                      minWidth: 40,
+                      minWidth: collapsed ? 0 : 40,
                       color: active ? 'inherit' : 'text.secondary',
+                      justifyContent: 'center',
                     }}
                   >
                     <Icon fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText
-                    primary={item.label}
-                    primaryTypographyProps={{
-                      fontSize: '0.875rem',
-                      fontWeight: active ? 600 : 500,
-                    }}
-                  />
+                  {!collapsed && (
+                    <ListItemText
+                      primary={item.label}
+                      primaryTypographyProps={{
+                        fontSize: '0.875rem',
+                        fontWeight: active ? 600 : 500,
+                      }}
+                    />
+                  )}
                 </ListItemButton>
               </Tooltip>
             </ListItem>
@@ -146,18 +157,21 @@ export function Sidebar({ open, onClose, variant }: SidebarProps) {
       <Divider />
 
       {/* Bottom Navigation */}
-      <List sx={{ px: 1.5, py: 1 }} disablePadding>
+      <List sx={{ px: collapsed ? 1 : 1.5, py: 1 }} disablePadding>
         {bottomMenuItems.map((item) => {
           const Icon = iconMap[item.icon];
           const active = isActive(item.path);
           return (
             <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
-              <Tooltip title={item.label} placement="right">
+              <Tooltip title={collapsed ? item.label : ''} placement="right" arrow>
                 <ListItemButton
                   onClick={() => handleNavigate(item.path)}
                   selected={active}
                   sx={{
                     borderRadius: 2,
+                    justifyContent: collapsed ? 'center' : 'flex-start',
+                    px: collapsed ? 1 : 2,
+                    minHeight: collapsed ? 44 : 'auto',
                     '&.Mui-selected': {
                       bgcolor: 'primary.main',
                       color: 'primary.contrastText',
@@ -172,30 +186,36 @@ export function Sidebar({ open, onClose, variant }: SidebarProps) {
                 >
                   <ListItemIcon
                     sx={{
-                      minWidth: 40,
+                      minWidth: collapsed ? 0 : 40,
                       color: active ? 'inherit' : 'text.secondary',
+                      justifyContent: 'center',
                     }}
                   >
                     <Icon fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText
-                    primary={item.label}
-                    primaryTypographyProps={{
-                      fontSize: '0.875rem',
-                      fontWeight: active ? 600 : 500,
-                    }}
-                  />
+                  {!collapsed && (
+                    <ListItemText
+                      primary={item.label}
+                      primaryTypographyProps={{
+                        fontSize: '0.875rem',
+                        fontWeight: active ? 600 : 500,
+                      }}
+                    />
+                  )}
                 </ListItemButton>
               </Tooltip>
             </ListItem>
           );
         })}
         <ListItem disablePadding sx={{ mb: 0.5 }}>
-          <Tooltip title="Logout" placement="right">
+          <Tooltip title={collapsed ? 'Logout' : ''} placement="right" arrow>
             <ListItemButton
               onClick={logout}
               sx={{
                 borderRadius: 2,
+                justifyContent: collapsed ? 'center' : 'flex-start',
+                px: collapsed ? 1 : 2,
+                minHeight: collapsed ? 44 : 'auto',
                 color: 'error.main',
                 '&:hover': {
                   bgcolor: 'error.main',
@@ -206,13 +226,15 @@ export function Sidebar({ open, onClose, variant }: SidebarProps) {
                 },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+              <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, color: 'inherit', justifyContent: 'center' }}>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
-              <ListItemText
-                primary="Logout"
-                primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 500 }}
-              />
+              {!collapsed && (
+                <ListItemText
+                  primary="Logout"
+                  primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: 500 }}
+                />
+              )}
             </ListItemButton>
           </Tooltip>
         </ListItem>
@@ -220,18 +242,23 @@ export function Sidebar({ open, onClose, variant }: SidebarProps) {
     </Box>
   );
 
+  const drawerWidth = collapsed ? 68 : DRAWER_WIDTH;
+
   return (
     <Drawer
       variant={variant}
       open={open}
       onClose={onClose}
       sx={{
-        width: DRAWER_WIDTH,
+        width: drawerWidth,
         flexShrink: 0,
+        whiteSpace: 'nowrap',
         '& .MuiDrawer-paper': {
-          width: DRAWER_WIDTH,
+          width: drawerWidth,
           boxSizing: 'border-box',
           border: 'none',
+          overflowX: 'hidden',
+          transition: 'width 0.2s ease',
         },
       }}
     >
