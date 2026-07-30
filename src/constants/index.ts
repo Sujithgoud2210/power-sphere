@@ -4,11 +4,31 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   DASHBOARD: '/dashboard',
+  // Organizations
   ORGANIZATIONS: '/organizations',
+  ORGANIZATIONS_CREATE: '/organizations/create',
+  ORGANIZATIONS_EDIT: '/organizations/:id/edit',
+  ORGANIZATIONS_DETAILS: '/organizations/:id',
+  // Users
   USERS: '/users',
+  USERS_CREATE: '/users/create',
+  USERS_EDIT: '/users/:id/edit',
+  USERS_DETAILS: '/users/:id',
+  // Meters
   METERS: '/meters',
+  METERS_CREATE: '/meters/create',
+  METERS_EDIT: '/meters/:id/edit',
+  METERS_DETAILS: '/meters/:id',
+  // Energy
   ENERGY: '/energy',
+  ENERGY_UPLOAD: '/energy/upload',
+  ENERGY_DETAILS: '/energy/:id',
+  ENERGY_CONSUMPTION: '/energy/consumption/:meterId',
+  // Billing
   BILLING: '/billing',
+  BILLING_GENERATE: '/billing/generate',
+  BILLING_DETAILS: '/billing/:id',
+  // Others
   NOTIFICATIONS: '/notifications',
   REPORTS: '/reports',
   SETTINGS: '/settings',
@@ -28,4 +48,9 @@ export const SIDEBAR_MENU_ITEMS = [
 
 export const QUERY_KEYS = {
   USER_PROFILE: 'userProfile',
+  ORGANIZATIONS: 'organizations',
+  USERS: 'users',
+  METERS: 'meters',
+  ENERGY_READINGS: 'energyReadings',
+  BILLS: 'bills',
 } as const;
