@@ -8,34 +8,33 @@ pnpm-debug.log*
 # Package lock inside node_modules
 node_modules/.package-lock.json
 
-# Build folders
-dist/
-build/
-
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.production.local
-
-# IDE
-.idea/
-.vscode/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-logs/
-*.log
+# Maven
+target/
 
 # Java
-target/
 *.class
 
 # Maven Wrapper
 .mvn/wrapper/maven-wrapper.jar
 
-# IntelliJ
+# Environment
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
 *.iml
+
+# Build
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,3 +1,4 @@
+
 # ⚡ PowerSphere – Enterprise Smart Energy Management Platform
 
 [![CI/CD Pipeline](https://github.com/powersphere/power-sphere/actions/workflows/ci.yml/badge.svg)](https://github.com/powersphere/power-sphere/actions/workflows/ci.yml)
