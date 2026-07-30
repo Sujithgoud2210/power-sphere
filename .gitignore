@@ -1,29 +1,40 @@
-# IntelliJ IDEA
-.idea/
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-
-*.iml
+# Package lock inside node_modules
+node_modules/.package-lock.json
 
 # Maven
 target/
 
-# Logs
-logs/
-*.log
-
 # Java
 *.class
+
+# Maven Wrapper
+.mvn/wrapper/maven-wrapper.jar
 
 # Environment
 .env
 .env.*
 
-# VS Code
+# IDE
+.idea/
 .vscode/
+*.iml
+
+# Build
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
 
 # OS
 .DS_Store
 Thumbs.db
-
-# Build
-out/

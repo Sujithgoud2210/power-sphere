@@ -1,341 +1,510 @@
-# PowerSphere – Enterprise Smart Energy Management Platform
 
-[![Java](https://img.shields.io/badge/Java-21-blue.svg)](https://adoptium.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![Maven](https://img.shields.io/badge/Maven-3.9+-orange.svg)](https://maven.apache.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+# ⚡ PowerSphere – Enterprise Smart Energy Management Platform
 
-## Project Overview
-
-PowerSphere is an **Enterprise Smart Energy Management Platform** designed to monitor, analyze, and optimize energy consumption across organizational infrastructures. Built on a **modular monolith** architecture, PowerSphere follows clean architecture and SOLID principles, with the flexibility to evolve into a microservices ecosystem as the platform grows.
-
-### Key Capabilities (Future Modules)
-
-| Module | Purpose |
-|---|---|
-| **Authentication** | Identity management and access control |
-| **Users** | User administration and profiles |
-| **Organization** | Tenant and organizational hierarchy |
-| **Energy** | Energy consumption tracking and analytics |
-| **Meter** | Smart meter data ingestion and management |
-| **Billing** | Usage-based billing and invoicing |
-| **Notification** | Multi-channel alerting (email, SMS, push) |
-| **Reports** | Configurable reporting engine |
-| **Dashboard** | Real-time visualization and monitoring |
+[![CI/CD Pipeline](https://github.com/powersphere/power-sphere/actions/workflows/ci.yml/badge.svg)](https://github.com/powersphere/power-sphere/actions/workflows/ci.yml)
+[![Java Version](https://img.shields.io/badge/Java-21-blue.svg)](https://adoptium.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.0-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 ---
 
-## Architecture
+## 📋 Table of Contents
 
-### Modular Monolith Design
-
-The platform is structured as a **modular monolith** — a single deployable unit with clear module boundaries. This approach provides:
-
-- **Domain-Driven Design**: Each module represents a bounded context
-- **Clean Separation**: Strict package-level isolation between modules
-- **Future-Proof**: Modules can be extracted into microservices with minimal refactoring
-- **Shared Foundation**: Common utilities, base entities, and cross-cutting concerns in shared modules
-
-### Package Structure
-
-```
-com.powersphere
-├── PowerSphereApplication.java          # Application entry point
-├── authentication/                       # Authentication & authorization
-├── users/                                # User management
-├── organization/                         # Organization & tenant management
-├── energy/                               # Energy data & analytics
-├── meter/                                # Smart meter management
-├── billing/                              # Billing & invoicing
-├── notification/                         # Notification services
-├── reports/                              # Report generation
-├── dashboard/                            # Dashboard & visualization
-├── common/                               # Shared base classes & utilities
-│   ├── config/                           # Shared configuration
-│   ├── constant/                         # Application constants
-│   ├── dto/                              # Generic DTOs
-│   ├── entity/                           # Base JPA entity
-│   └── exception/                        # Global exception handling
-├── shared/                               # Cross-module utilities
-│   ├── annotation/                       # Custom annotations
-│   ├── enums/                            # Shared enumerations
-│   └── util/                             # Common utilities
-└── config/                               # Infrastructure configuration
-    ├── AsyncConfig.java                  # Async task execution
-    ├── CacheConfig.java                  # Caching configuration
-    ├── CorsConfig.java                   # CORS settings
-    ├── JacksonConfig.java                # JSON serialization
-    ├── JpaConfig.java                    # JPA configuration
-    ├── OpenApiConfig.java                # API documentation
-    ├── RedisConfig.java                  # Redis configuration
-    └── SwaggerConfig.java                # Swagger annotations
-```
+- [Project Overview](#-project-overview)
+- [Architecture](#-architecture)
+- [Technology Stack](#-technology-stack)
+- [System Requirements](#-system-requirements)
+- [Local Development Setup](#-local-development-setup)
+- [Docker Deployment](#-docker-deployment)
+- [Environment Variables](#-environment-variables)
+- [API Documentation](#-api-documentation)
+- [Monitoring](#-monitoring)
+- [CI/CD Pipeline](#-cicd-pipeline)
+- [Project Structure](#-project-structure)
+- [Screenshots](#-screenshots)
+- [Security](#-security)
+- [Contributing](#-contributing)
 
 ---
 
-## Technology Stack
+## 📖 Project Overview
 
-### Core Framework
-| Technology | Version | Purpose |
-|---|---|---|
-| Java | 21 LTS | Runtime platform |
-| Spring Boot | 3.5.0 | Application framework |
-| Maven | 3.9+ | Build & dependency management |
+PowerSphere is an **Enterprise Smart Energy Management Platform** designed to monitor, analyze, and optimize energy consumption across organizations. It provides real-time tracking, billing management, meter management, and comprehensive analytics dashboards.
 
-### Data Layer
-| Technology | Version | Purpose |
-|---|---|---|
-| MySQL | 8.x | Primary database |
-| Redis | 7.x | Caching & session management |
-| Spring Data JPA | 3.5.x | ORM & data access |
-| Hibernate | 6.x | JPA implementation |
+### Key Features
 
-### API & Documentation
-| Technology | Version | Purpose |
-|---|---|---|
-| SpringDoc OpenAPI | 2.8.x | API documentation (Swagger) |
-| Jackson | 2.18.x | JSON serialization |
-
-### Development Tools
-| Technology | Version | Purpose |
-|---|---|---|
-| Lombok | 1.18.36 | Boilerplate code reduction |
-| MapStruct | 1.6.3 | Object mapping |
-| Spring DevTools | 3.5.x | Development productivity |
-
-### Testing
-| Technology | Version | Purpose |
-|---|---|---|
-| JUnit | 5.x | Unit testing |
-| Mockito | 5.x | Mocking framework |
-| H2 Database | 2.x | In-memory test database |
+- **Real-time Energy Monitoring** – Track energy consumption across meters and organizations
+- **Smart Meter Management** – Register, assign, and monitor smart meters
+- **Automated Billing** – Generate and manage tariff plans, bills, and payments
+- **Advanced Analytics** – Interactive dashboards with consumption trends, revenue analytics, and KPI tracking
+- **Notification System** – Configurable alerts and notification channels (email, SMS, in-app)
+- **Organization Management** – Multi-level hierarchy (Organization → Department → Team)
+- **User Management** – Role-based access control with granular permissions
+- **RESTful API** – Comprehensive API with OpenAPI/Swagger documentation
 
 ---
 
-## Folder Structure
+## 🏗️ Architecture
+
+### High-Level Architecture
 
 ```
-power-sphere/
-├── src/
-│   ├── main/
-│   │   ├── java/com/powersphere/        # Application source code
-│   │   └── resources/                    # Configuration files
-│   │       ├── application.yml           # Main configuration
-│   │       ├── application-dev.yml       # Development profile
-│   │       ├── application-test.yml      # Test profile
-│   │       ├── application-prod.yml      # Production profile
-│   │       ├── bootstrap.yml             # Bootstrap config
-│   │       └── logback-spring.xml        # Logging configuration
-│   └── test/
-│       ├── java/                         # Test source code
-│       └── resources/                    # Test resources
-├── database/
-│   ├── schema/                           # Database migration scripts
-│   └── data/                             # Seed data scripts
-├── docker/                               # Docker & Compose files
-├── docs/                                 # Documentation
-├── logs/                                 # Application logs
-├── postman/                              # Postman collections
-├── scripts/                              # Utility scripts
-├── pom.xml                               # Maven build file
-└── README.md                             # This file
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Load Balancer / Nginx                         │
+│                    (Reverse Proxy, SSL, Compression)                  │
+└─────────────────────────────────────────────────────────────────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              ▼                     ▼                      ▼
+   ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+   │   React SPA       │  │   Spring Boot    │  │   Prometheus     │
+   │   (Nginx)         │  │   REST API       │  │   + Grafana      │
+   │   Port 80         │  │   Port 8080      │  │   Port 9090/3000 │
+   └──────────────────┘  └──────────────────┘  └──────────────────┘
+                                  │                      │
+                    ┌─────────────┼─────────────┐        │
+                    ▼             ▼             ▼        │
+           ┌────────────┐ ┌────────────┐ ┌─────────┐    │
+           │  MySQL 8.4 │ │   Redis    │ │ MailHog │    │
+           │ Database   │ │   Cache    │ │  Email  │    │
+           └────────────┘ └────────────┘ └─────────┘    │
+                    │             │                      │
+                    └─────────────┘──────────────────────┘
+```
+
+### Deployment Diagram
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                      Docker Host                              │
+│  ┌───────────────────────────────┐                            │
+│  │   powersphere-network         │                            │
+│  │  (172.20.0.0/16)              │                            │
+│  │                               │                            │
+│  │  ┌──────┐ ┌──────┐ ┌──────┐  │                            │
+│  │  │Backend│ │Front │ │Prom  │  │                            │
+│  │  │:8080 │ │ :80  │ │:9090 │  │                            │
+│  │  └──────┘ └──────┘ └──────┘  │                            │
+│  │  ┌──────┐ ┌──────┐ ┌──────┐  │                            │
+│  │  │MySQL │ │Redis │ │Graf  │  │                            │
+│  │  │:3306 │ │:6379 │ │:3000 │  │                            │
+│  │  └──────┘ └──────┘ └──────┘  │                            │
+│  └───────────────────────────────┘                            │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Component Diagram
+
+- **Frontend**: React 19 SPA with MUI, Redux Toolkit, React Query, Recharts
+- **Backend**: Spring Boot 3.5.0 modular monolith with clean architecture
+- **Database**: MySQL 8.4 with HikariCP connection pooling
+- **Cache**: Redis 7.4 for session caching and data optimization
+- **Reverse Proxy**: Nginx 1.27 with compression, caching, and security headers
+- **Monitoring**: Prometheus + Grafana with pre-configured dashboards
+- **Email**: MailHog for email testing (development)
+
+### ER Diagram
+
+```
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│   User   │────▶│  Role    │────▶│Permission│
+└──────────┘     └──────────┘     └──────────┘
+     │
+     ▼
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│  Org     │────▶│Dept      │────▶│  Team    │
+└──────────┘     └──────────┘     └──────────┘
+     │                                │
+     ▼                                ▼
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│  Meter   │────▶│  Energy  │     │   Bill   │
+│          │     │ Reading  │     │          │
+└──────────┘     └──────────┘     └──────────┘
+     │                                │
+     ▼                                ▼
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│TariffPlan│     │Notificatn│     │BillHistory│
+└──────────┘     └──────────┘     └──────────┘
 ```
 
 ---
 
-## Getting Started
+## 🛠️ Technology Stack
+
+### Backend
+
+| Technology        | Version | Purpose                        |
+|-------------------|---------|--------------------------------|
+| Java              | 21      | Runtime platform               |
+| Spring Boot       | 3.5.0   | Application framework          |
+| Spring Security   | 6.5.0   | Authentication & authorization |
+| Spring Data JPA   | 3.5.0   | Database ORM                   |
+| Spring Data Redis | 3.5.0   | Redis cache integration        |
+| MySQL             | 8.4     | Primary database               |
+| Redis             | 7.4     | Caching layer                  |
+| JWT (jjwt)        | 0.13    | Token-based authentication     |
+| MapStruct         | 1.6.3   | Object mapping                 |
+| Lombok            | 1.18.46 | Boilerplate reduction          |
+| SpringDoc OpenAPI | 2.8.6   | API documentation              |
+| HikariCP          | -       | Connection pooling             |
+| JUnit 5           | -       | Testing framework              |
+| Mockito           | -       | Mocking framework              |
+
+### Frontend
+
+| Technology        | Version | Purpose                        |
+|-------------------|---------|--------------------------------|
+| React             | 19      | UI library                     |
+| TypeScript        | 5.6     | Type-safe JavaScript           |
+| Vite              | 6.0     | Build tool                     |
+| MUI (Material)    | 6.1     | Component library              |
+| Redux Toolkit     | 2.3     | State management               |
+| React Query       | 5.59    | Server state management        |
+| React Router      | 6.27    | Routing                        |
+| React Hook Form   | 7.53    | Form management                |
+| Zod               | 3.23    | Schema validation              |
+| Recharts          | 3.10    | Charts & visualization         |
+| Axios             | 1.7     | HTTP client                    |
+| Day.js            | 1.11    | Date handling                  |
+| React Toastify    | 10.0    | Notifications                  |
+
+### DevOps & Infrastructure
+
+| Technology       | Version | Purpose                        |
+|------------------|---------|--------------------------------|
+| Docker           | 24+     | Containerization               |
+| Docker Compose   | 2.20+   | Multi-container orchestration  |
+| Nginx            | 1.27    | Reverse proxy & static serving |
+| Prometheus       | Latest  | Metrics collection             |
+| Grafana          | Latest  | Metrics visualization          |
+| MailHog          | Latest  | Email testing                  |
+| GitHub Actions   | -       | CI/CD pipeline                 |
+| Trivy            | -       | Security vulnerability scanner |
+
+---
+
+## 💻 System Requirements
+
+- **Java**: JDK 21 (Temurin recommended)
+- **Node.js**: 22+
+- **Maven**: 3.9+
+- **Docker**: 24+ with Compose V2
+- **MySQL**: 8.4+
+- **Redis**: 7.4+
+- **OS**: Linux, macOS, or Windows with WSL2
+
+---
+
+## 🚀 Local Development Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/powersphere/power-sphere.git
+cd power-sphere
+```
+
+### 2. Backend Setup
+
+```bash
+# Build the backend
+mvn clean install -DskipTests
+
+# Run tests
+mvn test
+
+# Start backend (development)
+mvn spring-boot:run -Pdev
+```
+
+The backend starts at `http://localhost:8080` with H2 in-memory database.
+
+### 3. Frontend Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+The frontend starts at `http://localhost:3000` with hot reload enabled.
+
+### 4. Access the Application
+
+| Service      | URL                          |
+|-------------|------------------------------|
+| Frontend    | http://localhost:3000         |
+| Backend API | http://localhost:8080/api     |
+| Swagger UI  | http://localhost:8080/swagger-ui.html |
+| H2 Console  | http://localhost:8080/h2-console |
+| Actuator    | http://localhost:8080/actuator/health |
+
+---
+
+## 🐳 Docker Deployment
 
 ### Prerequisites
 
-- **Java Development Kit (JDK)** 21 or later
-- **Apache Maven** 3.9 or later
-- **MySQL** 8.x (for local development with MySQL profile)
-- **Redis** 7.x (optional, for caching)
+- Docker 24+ with Compose V2
+- At least 4GB RAM allocated to Docker
 
-### Environment Variables
-
-The application uses environment variables for all sensitive credentials:
-
-| Variable | Description | Default |
-|---|---|---|
-| `SERVER_PORT` | Application server port | `8080` |
-| `SPRING_PROFILES_ACTIVE` | Active profile | `dev` |
-| `DB_URL` | Database JDBC URL | `jdbc:mysql://localhost:3306/powersphere` |
-| `DB_USERNAME` | Database username | `root` |
-| `DB_PASSWORD` | Database password | `root` |
-| `DB_MAX_POOL_SIZE` | HikariCP max pool size | `10` |
-| `DB_MIN_IDLE` | HikariCP min idle connections | `5` |
-| `JPA_DDL_AUTO` | Hibernate DDL mode | `validate` |
-| `REDIS_HOST` | Redis host | `localhost` |
-| `REDIS_PORT` | Redis port | `6379` |
-| `REDIS_PASSWORD` | Redis password | (empty) |
-| `LOG_LEVEL_ROOT` | Root log level | `INFO` |
-| `LOG_LEVEL_APP` | Application log level | `DEBUG` |
-
-### Quick Start (Development)
+### Quick Start
 
 ```bash
-# Clone the repository
-git clone https://github.com/powersphere/power-sphere.git
-cd power-sphere
+# 1. Copy environment configuration
+cp .env.example .env
+# Edit .env with your secure values
 
-# Build the project
-./mvnw clean install
+# 2. Build and start all services
+docker compose up -d --build
 
-# Run with development profile (H2 in-memory database)
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+# 3. Check service health
+docker compose ps
 
-# Access Swagger UI
-# http://localhost:8080/swagger-ui.html
-
-# Access H2 Console (dev mode only)
-# http://localhost:8080/h2-console
+# 4. View logs
+docker compose logs -f
 ```
 
----
+### Services
 
-## Development Workflow
+| Service    | Port  | Credentials                      |
+|------------|-------|----------------------------------|
+| Frontend   | 80    | -                                |
+| Backend    | 8080  | -                                |
+| MySQL      | 3307  | `powersphere` / `(from .env)`    |
+| Redis      | 6380  | -                                |
+| MailHog    | 8025  | -                                |
+| Prometheus | 9090  | -                                |
+| Grafana    | 3000  | `admin` / `admin`                |
 
-### Maven Commands
+### Docker Commands
 
 ```bash
-# Build the project (skip tests)
-./mvnw clean install -DskipTests
+# Build images
+docker compose build
 
-# Run all tests
-./mvnw test
+# Start services
+docker compose up -d
 
-# Run specific test class
-./mvnw test -Dtest=PowerSphereApplicationTests
+# View logs
+docker compose logs -f [service_name]
 
-# Run application
-./mvnw spring-boot:run
+# Stop services
+docker compose down
 
-# Package as JAR
-./mvnw clean package
-```
+# Stop and remove volumes
+docker compose down -v
 
-### Profiles
+# Restart a specific service
+docker compose restart [service_name]
 
-| Profile | Database | Caching | Logging | Purpose |
-|---|---|---|---|---|
-| `dev` | H2 (in-memory) | In-memory | Verbose | Local development |
-| `test` | H2 (in-memory) | In-memory | Minimal | Automated testing |
-| `prod` | MySQL | Redis | WARN | Production deployment |
+# Scale a service
+docker compose up -d --scale backend=3
 
-### Code Quality
-
-- **Lombok**: Reduces boilerplate (getters, setters, builders, etc.)
-- **MapStruct**: Type-safe object mapping between entities and DTOs
-- **Spring Validation**: Bean validation with `jakarta.validation` annotations
-- **Checkstyle**: (Planned) Code style enforcement
-
----
-
-## API Documentation
-
-Once the application is running, API documentation is available at:
-
-- **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- **OpenAPI Spec**: [http://localhost:8080/api-docs](http://localhost:8080/api-docs)
-- **Actuator Health**: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
-- **Actuator Info**: [http://localhost:8080/actuator/info](http://localhost:8080/actuator/info)
-
----
-
-## Monitoring & Operations
-
-Spring Boot Actuator is configured with the following endpoints:
-
-- `/actuator/health` — Health probes (liveness, readiness)
-- `/actuator/info` — Application information
-- `/actuator/metrics` — Application metrics
-- `/actuator/env` — Environment properties
-- `/actuator/loggers` — Logger configuration
-- `/actuator/threaddump` — Thread dump
-- `/actuator/heapdump` — Heap dump (production)
-
----
-
-## Database
-
-### Schema Management
-
-The platform uses **Hibernate DDL auto** for schema management during development (`ddl-auto: update`) and **Flyway** or **Liquibase** (planned) for production migrations.
-
-### Initial Setup
-
-```sql
--- Create the PowerSphere database
-CREATE DATABASE IF NOT EXISTS powersphere
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
-
--- Create application user
-CREATE USER IF NOT EXISTS 'powersphere'@'%' IDENTIFIED BY 'your-strong-password';
-GRANT ALL PRIVILEGES ON powersphere.* TO 'powersphere'@'%';
-FLUSH PRIVILEGES;
+# Check health
+docker compose ps
 ```
 
 ---
 
-## Future Roadmap
+## 🔐 Environment Variables
 
-### Phase 1 — Foundation (Current)
-- [x] Project structure & configuration
-- [x] Modular monolith architecture
-- [x] Shared utilities & base classes
-- [x] API documentation setup
-- [x] Monitoring & health checks
-
-### Phase 2 — Core Infrastructure
-- [ ] Authentication & authorization (JWT)
-- [ ] User management
-- [ ] Organization & tenant setup
-- [ ] Database migrations (Flyway/Liquibase)
-- [ ] CI/CD pipeline
-
-### Phase 3 — Business Modules
-- [ ] Smart meter data ingestion
-- [ ] Energy consumption analytics
-- [ ] Billing engine
-- [ ] Notification system
-- [ ] Reporting engine
-- [ ] Real-time dashboards
-
-### Phase 4 — Enterprise Features
-- [ ] Microservices extraction
-- [ ] Event-driven architecture
-- [ ] API Gateway
-- [ ] Service discovery
-- [ ] Distributed tracing
-- [ ] Multi-region deployment
+| Variable                   | Default                    | Description                          |
+|---------------------------|----------------------------|--------------------------------------|
+| `SPRING_PROFILES_ACTIVE`  | `prod`                     | Active Spring profile                |
+| `SERVER_PORT`             | `8080`                     | Backend server port                  |
+| `DB_URL`                  | (see .env.example)         | MySQL JDBC URL                       |
+| `DB_USERNAME`             | -                          | Database username                    |
+| `DB_PASSWORD`             | -                          | Database password                    |
+| `DB_MAX_POOL_SIZE`        | `20`                       | HikariCP max pool size               |
+| `REDIS_HOST`              | `redis`                    | Redis hostname                       |
+| `REDIS_PORT`              | `6379`                     | Redis port                           |
+| `REDIS_PASSWORD`          | -                          | Redis password                       |
+| `JWT_SECRET`              | -                          | 256-bit JWT signing secret           |
+| `JWT_ACCESS_EXPIRATION`   | `900000`                   | Access token TTL (ms)                |
+| `JWT_REFRESH_EXPIRATION`  | `604800000`                | Refresh token TTL (ms)               |
+| `GRAFANA_ADMIN_USER`      | `admin`                    | Grafana admin username               |
+| `GRAFANA_ADMIN_PASSWORD`  | `admin`                    | Grafana admin password               |
+| `LOG_LEVEL_ROOT`          | `WARN`                     | Root log level                       |
+| `LOG_LEVEL_APP`           | `INFO`                     | Application log level                |
+| `TOMCAT_MAX_THREADS`      | `200`                      | Tomcat max thread pool               |
 
 ---
 
-## Contributing
+## 📚 API Documentation
+
+API documentation is automatically generated using SpringDoc OpenAPI.
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI Spec**: http://localhost:8080/api-docs
+
+### Main API Endpoints
+
+| Method | Endpoint                          | Description                |
+|--------|----------------------------------|----------------------------|
+| POST   | `/api/auth/login`                | User login                 |
+| POST   | `/api/auth/register`             | User registration          |
+| POST   | `/api/auth/refresh-token`        | Refresh JWT token          |
+| GET    | `/api/energy/readings`           | List energy readings       |
+| POST   | `/api/energy/readings`           | Create energy reading      |
+| GET    | `/api/meters`                    | List smart meters          |
+| POST   | `/api/meters`                    | Register smart meter       |
+| GET    | `/api/bills`                     | List bills                 |
+| POST   | `/api/bills/generate`            | Generate bill              |
+| GET    | `/api/dashboard/summary`         | Dashboard KPIs             |
+| GET    | `/api/dashboard/consumption`     | Consumption trends         |
+| GET    | `/api/notifications`             | List notifications         |
+| GET    | `/api/organizations`             | List organizations         |
+| GET    | `/api/users`                     | List users                 |
+
+---
+
+## 📊 Monitoring
+
+### Prometheus
+
+Prometheus scrapes metrics from the Spring Boot Actuator at `/actuator/prometheus`.
+
+**Available metrics:**
+- JVM memory, threads, garbage collection
+- HTTP request rates and latencies
+- Database connection pool metrics
+- Custom application metrics
+
+**Access:** http://localhost:9090
+
+### Grafana
+
+Grafana is pre-configured with Prometheus as a datasource and includes a **PowerSphere System Overview** dashboard.
+
+**Key panels:**
+- JVM Memory Usage (with thresholds)
+- HTTP Requests per Second
+- Active Database Connections
+- API Response Time (P95)
+- CPU Usage (System vs Process)
+- JVM Thread States
+- Application Uptime
+
+**Access:** http://localhost:3000 (admin / admin)
+
+---
+
+## 🔄 CI/CD Pipeline
+
+The project uses **GitHub Actions** for continuous integration and deployment.
+
+### Pipeline Stages
+
+1. **Backend** – Compile, test, and build Spring Boot JAR
+2. **Frontend** – TypeScript check, lint, test, and build React SPA
+3. **Docker** – Build and verify Docker images
+4. **Security** – Vulnerability scanning with Trivy
+5. **Deploy** – (Manual trigger) Deploy to production server
+
+### Workflow Triggers
+
+- Push to `main` and `develop` branches
+- Pull requests targeting `main` and `develop`
+
+---
+
+## 📁 Project Structure
+
+```
+power-sphere/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # CI/CD pipeline
+├── docker/
+│   ├── backend.Dockerfile            # Multi-stage backend build
+│   ├── frontend.Dockerfile           # Multi-stage frontend build
+│   ├── nginx.conf                    # Nginx production config
+│   ├── prometheus.yml                # Prometheus scrape config
+│   └── grafana/
+│       ├── datasources/
+│       │   └── datasource.yml        # Grafana datasource
+│       └── dashboards/
+│           ├── dashboard.yml         # Dashboard provider
+│           └── powersphere-overview.json  # Overview dashboard
+├── scripts/
+│   ├── healthcheck.sh                # Health check script
+│   └── deploy.sh                     # Deployment script
+├── docs/
+│   ├── architecture.md               # Architecture documentation
+│   └── api.md                        # API reference
+├── src/
+│   ├── main/
+│   │   ├── java/com/powersphere/     # Backend Java source
+│   │   └── resources/                # Application configs
+│   ├── api/                          # Frontend API layer
+│   ├── components/                   # React components
+│   ├── hooks/                        # Custom React hooks
+│   ├── layouts/                      # Layout components
+│   ├── pages/                        # Page components
+│   ├── routes/                       # Route configuration
+│   ├── services/                     # API service layer
+│   ├── store/                        # Redux store
+│   ├── styles/                       # Global styles & theme
+│   ├── types/                        # TypeScript types
+│   └── utils/                        # Utility functions
+├── pom.xml                          # Maven build file
+├── package.json                     # Node dependencies
+├── vite.config.ts                   # Vite configuration
+├── tsconfig.json                    # TypeScript config
+├── docker-compose.yml               # Production Docker Compose
+├── .env.example                     # Environment template
+└── README.md                        # This file
+```
+
+---
+
+## 📸 Screenshots
+
+> *Screenshots coming soon*
+
+| Dashboard | Energy Monitoring | Billing |
+|-----------|-------------------|---------|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Energy](docs/screenshots/energy.png) | ![Billing](docs/screenshots/billing.png) |
+
+---
+
+## 🔒 Security
+
+- **JWT Authentication** with access and refresh tokens
+- **Role-Based Access Control** (RBAC) with granular permissions
+- **Password Validation** with custom validators
+- **CORS Configuration** for controlled cross-origin access
+- **Security Headers** via Nginx (CSP, HSTS, X-Frame-Options, etc.)
+- **SQL Injection Protection** via JPA parameterized queries
+- **Input Validation** on all API endpoints
+- **Dependency Scanning** via Trivy in CI pipeline
+
+---
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-### Branch Naming Convention
+### Code Style
 
-- `feature/*` — New features
-- `fix/*` — Bug fixes
-- `refactor/*` — Code refactoring
-- `docs/*` — Documentation updates
+- **Backend**: Follow Java conventions, use Lombok, test with JUnit 5
+- **Frontend**: Use TypeScript strictly, follow React best practices
+- **Commits**: Use conventional commits (`feat:`, `fix:`, `docs:`, etc.)
 
 ---
 
-## License
+## 📄 License
 
-This project is licensed under the Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-## Contact
+---
 
-- **Project Team**: dev@powersphere.com
-- **Project Home**: [https://powersphere.com](https://powersphere.com)
-- **Issue Tracker**: [GitHub Issues](https://github.com/powersphere/power-sphere/issues)
+<p align="center">Built with ❤️ by the PowerSphere Team</p>

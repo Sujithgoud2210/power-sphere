@@ -1,0 +1,31 @@
+# =============================================================================
+# PowerSphere – Grafana Datasource Provisioning
+# =============================================================================
+
+apiVersion: 1
+
+datasources:
+  # Primary datasource: Prometheus for Spring Boot metrics
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    uid: prometheus
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 30s
+      httpMethod: POST
+      manageAlerts: true
+
+  # MySQL datasource (for Grafana SQL queries, if needed)
+  # - name: MySQL
+  #   type: mysql
+  #   access: proxy
+  #   url: mysql:3306
+  #   database: powersphere
+  #   user: ${GRAFANA_DB_USER:-grafana}
+  #   secureJsonData:
+  #     password: ${GRAFANA_DB_PASSWORD:-grafana}
+  #   editable: false

@@ -1,0 +1,17 @@
+# =============================================================================
+# PowerSphere – Grafana Dashboard Provider Configuration
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: 'PowerSphere'
+    orgId: 1
+    folder: 'PowerSphere'
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: true

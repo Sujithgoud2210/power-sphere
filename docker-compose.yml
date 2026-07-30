@@ -1,0 +1,263 @@
+# =============================================================================
+# PowerSphere – Production Docker Compose
+# Enterprise Smart Energy Management Platform
+# =============================================================================
+
+version: "3.9"
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  powersphere-network:
+    driver: bridge
+    name: powersphere-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  mysql-data:
+    name: powersphere-mysql-data
+    driver: local
+  redis-data:
+    name: powersphere-redis-data
+    driver: local
+  prometheus-data:
+    name: powersphere-prometheus-data
+    driver: local
+  grafana-data:
+    name: powersphere-grafana-data
+    driver: local
+  mailhog-data:
+    name: powersphere-mailhog-data
+    driver: local
+
+# =============================================================================
+# Services
+# =============================================================================
+services:
+  # ---- MySQL Database ----
+  mysql:
+    image: mysql:8.4
+    container_name: powersphere-mysql
+    restart: unless-stopped
+    networks:
+      - powersphere-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./database/schema:/docker-entrypoint-initdb.d:ro
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-powersphere}
+      MYSQL_USER: ${DB_USERNAME:-powersphere}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-powersphere}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb_buffer_pool_size=512M
+      - --max_connections=100
+
+  # ---- Redis Cache ----
+  redis:
+    image: redis:7.4-alpine
+    container_name: powersphere-redis
+    restart: unless-stopped
+    networks:
+      - powersphere-network
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+        reservations:
+          memory: 128M
+          cpus: "0.25"
+    command: redis-server --appendonly yes --save 60 1 --loglevel warning
+
+  # ---- Spring Boot Backend ----
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: powersphere-backend
+    restart: unless-stopped
+    networks:
+      - powersphere-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+      DB_URL: jdbc:mysql://mysql:3306/${DB_NAME:-powersphere}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: ${DB_USERNAME:-powersphere}
+      DB_PASSWORD: ${DB_PASSWORD:-powersphere}
+      DB_MAX_POOL_SIZE: ${DB_MAX_POOL_SIZE:-20}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_SSL_ENABLED: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-900000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      LOG_LEVEL_ROOT: WARN
+      LOG_LEVEL_APP: INFO
+      JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseZGC"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: "2.0"
+        reservations:
+          memory: 512M
+          cpus: "0.5"
+
+  # ---- Nginx Frontend ----
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    container_name: powersphere-frontend
+    restart: unless-stopped
+    networks:
+      - powersphere-network
+    depends_on:
+      - backend
+    # Note: Nginx can serve static files independently; only API calls depend on backend health
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+
+  # ---- MailHog (Email Testing) ----
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: powersphere-mailhog
+    restart: unless-stopped
+    networks:
+      - powersphere-network
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8025"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ---- Prometheus (Metrics Collection) ----
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: powersphere-prometheus
+    restart: unless-stopped
+    networks:
+      - powersphere-network
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.console.libraries=/etc/prometheus/console_libraries
+      - --web.console.templates=/etc/prometheus/consoles
+      - --web.enable-lifecycle
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+
+  # ---- Grafana (Metrics Visualization) ----
+  grafana:
+    image: grafana/grafana:latest
+    container_name: powersphere-grafana
+    restart: unless-stopped
+    networks:
+      - powersphere-network
+    volumes:
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_SERVER_ROOT_URL: http://localhost:3000
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    ports:
+      - "3000:3000"
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
