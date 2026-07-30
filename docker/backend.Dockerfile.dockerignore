@@ -1,0 +1,65 @@
+# =============================================================================
+# PowerSphere – .dockerignore (applied at project root via docker build context)
+# =============================================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.idea.bak
+*.iml
+.vscode
+
+# Node (frontend dependencies - not needed for backend build)
+node_modules
+package.json
+package-lock.json
+public/
+src/App.tsx
+src/api/
+src/components/
+src/contexts/
+src/hooks/
+src/layouts/
+src/main.tsx
+src/pages/
+src/routes/
+src/services/
+src/store/
+src/styles/
+src/types/
+src/utils/
+src/vite-env.d.ts
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+vite.config.ts
+index.html
+
+# Backend build output
+target/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Docker
+docker/
+docker-compose.yml
+docker-compose*.yml
+
+# Documentation
+README.md
+docs/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

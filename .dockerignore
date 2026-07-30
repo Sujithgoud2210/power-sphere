@@ -1,0 +1,52 @@
+# =============================================================================
+# PowerSphere – Docker Ignore
+# Applied at project root to optimize Docker build context
+# =============================================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.idea.bak
+*.iml
+.vscode
+*.swp
+*.swo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+target/
+dist/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Docker
+docker/
+docker-compose*.yml
+*.Dockerfile
+
+# Documentation
+README.md
+docs/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.~
+
+# CI/CD
+.github/
