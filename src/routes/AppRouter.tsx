@@ -5,11 +5,22 @@ import { AppLayout } from '@/layouts';
 import {
   AuthPage,
   DashboardPage,
-  OrganizationsPage,
-  UsersPage,
-  MetersPage,
-  EnergyPage,
-  BillingPage,
+  OrganizationListPage,
+  OrganizationFormPage,
+  OrganizationDetailsPage,
+  UserListPage,
+  UserFormPage,
+  UserDetailsPage,
+  MeterListPage,
+  MeterFormPage,
+  MeterDetailsPage,
+  EnergyListPage,
+  UploadReadingPage,
+  EnergyDetailsPage,
+  ConsumptionHistoryPage,
+  BillListPage,
+  BillDetailsPage,
+  GenerateBillPage,
   NotificationsPage,
   ReportsPage,
   SettingsPage,
@@ -20,32 +31,39 @@ import {
 export function AppRouter() {
   return (
     <Routes>
-      {/* Public Routes */}
       <Route element={<PublicRoute />}>
         <Route path={ROUTES.LOGIN} element={<AuthPage />} />
         <Route path={ROUTES.REGISTER} element={<AuthPage />} />
       </Route>
-
-      {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-          <Route path={ROUTES.ORGANIZATIONS} element={<OrganizationsPage />} />
-          <Route path={ROUTES.USERS} element={<UsersPage />} />
-          <Route path={ROUTES.METERS} element={<MetersPage />} />
-          <Route path={ROUTES.ENERGY} element={<EnergyPage />} />
-          <Route path={ROUTES.BILLING} element={<BillingPage />} />
+          <Route path={ROUTES.ORGANIZATIONS} element={<OrganizationListPage />} />
+          <Route path={ROUTES.ORGANIZATIONS_CREATE} element={<OrganizationFormPage />} />
+          <Route path={ROUTES.ORGANIZATIONS_EDIT} element={<OrganizationFormPage />} />
+          <Route path={ROUTES.ORGANIZATIONS_DETAILS} element={<OrganizationDetailsPage />} />
+          <Route path={ROUTES.USERS} element={<UserListPage />} />
+          <Route path={ROUTES.USERS_CREATE} element={<UserFormPage />} />
+          <Route path={ROUTES.USERS_EDIT} element={<UserFormPage />} />
+          <Route path={ROUTES.USERS_DETAILS} element={<UserDetailsPage />} />
+          <Route path={ROUTES.METERS} element={<MeterListPage />} />
+          <Route path={ROUTES.METERS_CREATE} element={<MeterFormPage />} />
+          <Route path={ROUTES.METERS_EDIT} element={<MeterFormPage />} />
+          <Route path={ROUTES.METERS_DETAILS} element={<MeterDetailsPage />} />
+          <Route path={ROUTES.ENERGY} element={<EnergyListPage />} />
+          <Route path={ROUTES.ENERGY_UPLOAD} element={<UploadReadingPage />} />
+          <Route path={ROUTES.ENERGY_DETAILS} element={<EnergyDetailsPage />} />
+          <Route path={ROUTES.ENERGY_CONSUMPTION} element={<ConsumptionHistoryPage />} />
+          <Route path={ROUTES.BILLING} element={<BillListPage />} />
+          <Route path={ROUTES.BILLING_GENERATE} element={<GenerateBillPage />} />
+          <Route path={ROUTES.BILLING_DETAILS} element={<BillDetailsPage />} />
           <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
           <Route path={ROUTES.REPORTS} element={<ReportsPage />} />
           <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
           <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         </Route>
       </Route>
-
-      {/* Redirects */}
       <Route path="/" element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-
-      {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
