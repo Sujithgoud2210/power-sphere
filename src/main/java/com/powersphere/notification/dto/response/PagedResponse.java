@@ -1,0 +1,25 @@
+package com.powersphere.notification.dto.response;
+
+import lombok.*;
+
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class PagedResponse<T> {
+
+    private List<T> content;
+    private int page;
+    private int size;
+    private long totalElements;
+    private int totalPages;
+    private boolean last;
+    private boolean first;
+    private boolean empty;
+    private int numberOfElements;
+    private String sortBy;
+    private String sortDirection;
+}
